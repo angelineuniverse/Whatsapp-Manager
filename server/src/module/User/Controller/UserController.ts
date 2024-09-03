@@ -2,8 +2,9 @@ import connection from '../../../connection/database.ts';
 import { Auth } from '../../../../provider/Auth.ts';
 import moment from 'moment';
 export async function index(req: any, res: any) {
-    const auth = await new Auth().generateToken(1,"angelineuniverse");
-    // const ress = new Auth().decryptHashing(auth);
+    // const token = await new Auth().hashing("angelineuniverse");
+    const auth = await new Auth().generateToken(3,"angelineuniverse");
+    // const ress = new Auth().decryptHashing(token);
     res.json(auth);
     // connection.query('select * from m_user_tab where isactive = 1', (err, result) => {
     //     if (err) throw err;
@@ -38,8 +39,11 @@ export async function store(req: any, res: any) {
     });
 }
 export async function login(req: any, res: any) {
-    const auth = await new Auth().attempt(req.body);
-    console.log(auth);
+    // const auth = await new Auth().attempt(req.body);
+    // if (auth) {
+        const hash = await new Auth().user(req);
+        res.json(hash);
+    // }
     
     // res.json(new Auth().generateToken('Angeline_universe'));
     // connection.query(`select * from m_user_tab where id = ${req.body.id}`, (err, result) => {
