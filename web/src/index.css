@@ -1,3 +1,39 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+@layer base {
+    @font-face {
+        font-family: interblack;
+        src: url('../assets/font/Inter-Black.ttf');
+    }
+    @font-face {
+        font-family: interextrabold;
+        src: url('../assets/font/Inter-ExtraBold.ttf');
+    }
+    @font-face {
+        font-family: interbold;
+        src: url('../assets/font/Inter-Bold.ttf');
+    }
+    @font-face {
+        font-family: intermedium;
+        src: url('../assets/font/Inter-Medium.ttf');
+    }
+    @font-face {
+        font-family: intersemibold;
+        src: url('../assets/font/Inter-SemiBold.ttf');
+    }
+    @font-face {
+        font-family: interregular;
+        src: url('../assets/font/Inter-Regular.ttf');
+    }
+    @font-face {
+        font-family: interlight;
+        src: url('../assets/font/Inter-Light.ttf');
+    }
+    @font-face {
+        font-family: interthin;
+        src: url('../assets/font/Inter-Thin.ttf');
+    }
+}
