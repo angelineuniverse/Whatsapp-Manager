@@ -1,13 +1,14 @@
 import axios from 'axios';
+import { getCookie } from 'typescript-cookie';
 const client = axios.create({
-    baseURL: '',
+    baseURL: 'http://localhost:8000',
     headers: {
         Authorization: 'Bearer '
     }
 });
 
 client.interceptors.request.use((config) => {
-    const token = false; // Ambil dari cookie;
+    const token = getCookie('LOG');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }

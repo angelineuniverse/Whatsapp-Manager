@@ -37,8 +37,10 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
+    "@types/cors": "^2.8.17",
     "@whiskeysockets/baileys": "^6.7.5",
     "@wppconnect-team/wppconnect": "^1.33.0",
+    "cors": "^2.8.5",
     "express": "^4.19.2",
     "mysql2": "^3.11.0"
   },

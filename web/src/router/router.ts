@@ -1,7 +1,8 @@
 import { createBrowserRouter, redirect } from "react-router-dom";
+import { getCookie } from "typescript-cookie";
 
 export function authNotExist() {
-    const token = false;// dari cookie ?
+    const token = getCookie('LOG');
     if (!token) {
         return redirect('/auth')
     }
@@ -9,7 +10,7 @@ export function authNotExist() {
 }
 
 export function authExist() {
-    const token = false;// dari cookie ?
+    const token = getCookie('LOG');
     if (token) {
         return redirect('/')
     }
