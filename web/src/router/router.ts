@@ -1,5 +1,6 @@
 import { createBrowserRouter, redirect } from "react-router-dom";
 import { getCookie } from "typescript-cookie";
+  
 
 export function authNotExist() {
     const token = getCookie('LOG');
@@ -17,6 +18,17 @@ export function authExist() {
     return null;
 }
 
+const lazyWrap = (factory: () => Promise<any>) => {
+    return async () => {
+        const page = await factory()
+        return {
+            Component: page.default || page.Component,
+            ErrorBoundary: page.ErrorBoundary,
+            // loader: page.loader,
+        }
+    }
+}
+
 const Router = createBrowserRouter([
     {
         path: '/auth',
@@ -30,14 +42,25 @@ const Router = createBrowserRouter([
     },
     {
         path: '/',
-        async lazy() {
-            let Dashboard = await import('../layout/dashboard');
-            return { Component: Dashboard.default };
-        },
+        lazy: lazyWrap(() => import('../layout/dashboard')),
         async loader() {
             return authNotExist();
-        }
-    }
+        },
+        children: [
+            {
+                path: 'manage',
+                children: [
+                    {
+                        path: 'profile',
+                        lazy: lazyWrap(() => import('../layout/manage/profile/index')),
+                        async loader() {
+                            return authNotExist();
+                        }
+                    },
+                ]
+            }
+        ]
+    },
 ]);
 
 export default Router;

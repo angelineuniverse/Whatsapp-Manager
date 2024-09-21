@@ -2,10 +2,10 @@ import express from "express";
 import bodyParser from "body-parser";
 import http from "http";
 import env from "dotenv";
-// import cors from "cors";
 import routerUser from "./module/User/Router/api.ts";
 import routerCompany from "./module/Company/Router/api.ts";
-// import { startSession } from "./module/Whatsapp/index.ts";
+import routerMenu from "./module/Master/Router/api.ts";
+import routerWa from "./module/Whatsapp/Router/api.ts";
 const apps = express();
 const httpServer = http.createServer(apps);
 env.config();
@@ -23,12 +23,12 @@ apps.use(function (req, res, next) {
   if ("OPTIONS" == req.method) res.sendStatus(200);
   else next();
 });
-// apps.use(cors());
 apps.use('/user', routerUser);
 apps.use('/company', routerCompany);
+apps.use('/menu', routerMenu);
+apps.use('/wa', routerWa);
 
 const callback = async () => {
-  // await startSession();
   console.log(`Server started on http://localhost:${port}`);
 };
 httpServer.listen(port, async () => callback());
