@@ -51,12 +51,22 @@ const Router = createBrowserRouter([
                 path: 'manage',
                 children: [
                     {
-                        path: 'profile',
-                        lazy: lazyWrap(() => import('../layout/manage/profile/index')),
-                        async loader() {
-                            return authNotExist();
-                        }
+                        path: 'pengguna',
+                        lazy: lazyWrap(() => import('../layout/base')),
+                        children: [
+                            {
+                                id: 'pengguna-index',
+                                path: '',
+                                lazy: lazyWrap(() => import('../layout/manage/pengguna/index')),
+                            },
+                            {
+                                id: 'pengguna-add',
+                                path: 'add',
+                                lazy: lazyWrap(() => import('../layout/manage/pengguna/add')),
+                            },
+                        ]
                     },
+                    
                 ]
             }
         ]

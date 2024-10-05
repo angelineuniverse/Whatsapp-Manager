@@ -1,6 +1,6 @@
 import { Component } from "react";
 import { NavLink, Outlet } from "react-router-dom";
-import Icon from "../component/icon/icon";
+import { Icon } from "@angelineuniverse/design";
 import { RouterInterface } from "../router/interface";
 import { MenuIndex } from "./controller";
 
@@ -24,14 +24,14 @@ class Dashboard extends Component<RouterInterface> {
   callMenuIndex() {
     MenuIndex().then((res) => {
       this.setState({
-        menuList: res,
+        menuList: res?.data,
       });
     });
   }
   render() {
     return (
       <div className="flex justify-start h-screen bg-slate-100 overflow-y-hidden">
-        <div className="dashboard-menu md:w-[13%] overflow-y-auto">
+        <div className="dashboard-menu md:w-[13%] overflow-y-auto border-r border-gray-300">
           <div className="w-full h-full bg-white">
             <div className="p-3 flex gap-x-4 items-center">
               <div className="rounded-full h-8 w-8 bg-gray-400"></div>
@@ -129,7 +129,7 @@ class Dashboard extends Component<RouterInterface> {
             </div>
           </div>
         </div>
-        <div className="md:w-[87%] overflow-y-auto px-7 pt-5">
+        <div className="md:w-[87%] overflow-y-auto px-7 pt-5 bg-white">
           <Outlet></Outlet>
         </div>
       </div>

@@ -16,6 +16,16 @@ export function eloquentWith(
     return output;
 }
 
+export function eloquentWithArray(arr: Array<any>, arr2: Array<any>, keyParent: string, keyChild: string, key: string) {
+    if (arr instanceof Array) {
+        const fill = arr.map((item: any) => ({
+            ...item,
+            [key]: arr2.filter((y) => { return y[keyChild] == item[keyParent] })[0] ?? null
+        }))
+        return fill;
+    }
+}
+
 export function eloquentWithManual(arr: object, key: string, child: Array<any> | object) {
     const output = {
         ...arr,

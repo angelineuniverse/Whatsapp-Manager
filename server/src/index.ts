@@ -5,6 +5,7 @@ import env from "dotenv";
 import routerUser from "./module/User/Router/api.ts";
 import routerCompany from "./module/Company/Router/api.ts";
 import routerMenu from "./module/Master/Router/api.ts";
+import routerMenuAccess from "./module/Master/Router/ApiMenuAccess.ts";
 import routerWa from "./module/Whatsapp/Router/api.ts";
 const apps = express();
 const httpServer = http.createServer(apps);
@@ -18,7 +19,7 @@ apps.use(function (req, res, next) {
   res.header("Access-Control-Allow-Methods", "*");
   res.header(
     "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-auth-token"
   );
   if ("OPTIONS" == req.method) res.sendStatus(200);
   else next();
@@ -26,6 +27,7 @@ apps.use(function (req, res, next) {
 apps.use('/user', routerUser);
 apps.use('/company', routerCompany);
 apps.use('/menu', routerMenu);
+apps.use('/menuaccess', routerMenuAccess);
 apps.use('/wa', routerWa);
 
 const callback = async () => {

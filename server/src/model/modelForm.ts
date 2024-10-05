@@ -7,6 +7,14 @@ export interface ModelForm{
     description?: string;
     placeholder: string;
     autosize: boolean;
-    // list?: ListProps;
+    list?: ListProps;
     children_custom?: any;
+    classNameOption?: string
+}
+
+export interface ListProps{
+    options: Array<any>;
+    keyValue: string,
+    keyoption: string;
+    keyprefix?: string;
 }

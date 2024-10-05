@@ -7,5 +7,4 @@ routerMenu.get('/', index); // user -> GET index
 // routerMenu.post('/', store); // user -> POST store
 // routerMenu.post('/login', login); // user -> POST store
 // routerMenu.delete('/:id', destroy); // user -> POST store
-
 export default routerMenu;

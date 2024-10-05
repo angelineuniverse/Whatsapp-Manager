@@ -19,14 +19,18 @@ class Auth extends Component<RouterInterface> {
 
   async auth() {
     this.setState({ loading: true });
-    await login({ ...this.state })
+    await login({
+      email: this.state.email,
+      password: this.state.password,
+    })
       .then((res: any) => {
         this.setState({ loading: false });
-        setCookie("LOG", res);
+        setCookie("LOG", res?.data?.data?.token);
         return this.props.navigate("/");
       })
       .catch((err) => {
-        console.log(err); //fndjfnsjdfnj
+        this.setState({ loading: false });
+        console.log(err); //pass=!
       });
   }
   render() {
