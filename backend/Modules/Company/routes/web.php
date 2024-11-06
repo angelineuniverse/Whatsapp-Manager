@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Modules\Company\Http\Controllers\CompanyController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,7 +11,3 @@ use Modules\Company\Http\Controllers\CompanyController;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
-Route::group([], function () {
-    Route::resource('company', CompanyController::class)->names('company');
-});
