@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('m_user_tabs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('m_company_tabs_id')->nullable();
+            $table->string('code');
             $table->string('email');
             $table->string('name');
             $table->string('password');
-            $table->integer('contact')->nullable();
-            $table->string('avatar');
+            $table->string('contact')->nullable();
+            $table->string('avatar')->nullable();
             $table->unsignedInteger('m_status_tabs_id');
             $table->unsignedInteger('m_access_tabs_id')->nullable();
             $table->timestamps();

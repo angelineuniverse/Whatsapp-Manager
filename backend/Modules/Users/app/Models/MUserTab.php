@@ -13,7 +13,17 @@ class MUserTab extends Authenticatable
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable = [];
+    protected $fillable = [
+        'm_company_tabs_id',
+        'email',
+        'code',
+        'name',
+        'password',
+        'contact',
+        'avatar',
+        'm_status_tabs_id',
+        'm_access_tabs_id',
+    ];
 
     protected function casts(): array
     {
