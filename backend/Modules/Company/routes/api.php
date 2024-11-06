@@ -13,7 +13,7 @@ use Modules\Company\Http\Controllers\CompanyController;
  * is assigned the "api" middleware group. Enjoy building your API!
  *
 */
-Route::resource('company', CompanyController::class);
-// Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
-//     Route::apiResource('company', CompanyController::class)->names('company');
-// });
+
+Route::prefix('v1')->group(function () {
+    Route::resource('company', CompanyController::class);
+});
