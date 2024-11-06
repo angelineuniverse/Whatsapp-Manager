@@ -4,8 +4,13 @@ namespace Modules\Users\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Laravel\Sanctum\PersonalAccessToken;
 use Modules\Master\Models\MCodeTab;
+use Modules\Users\Emails\MailRegister;
 use Modules\Users\Models\MUserTab;
 
 class UsersController extends Controller
@@ -35,6 +40,21 @@ class UsersController extends Controller
         return view('users::create');
     }
 
+    public function login(Request $request)
+    {
+        $this->controller->validing($request->all(), [
+            'email' => 'required',
+            'password' => 'required|min:8',
+        ]);
+
+        if (!Auth::attempt($request->all())) abort(400, "Your information not valid");
+        if (!$user = $this->mUserTab->where('email', $request->email)->where('m_status_tabs_id', 2)->first()) abort(501, "Your account not found !");
+        $token = $user->createToken('ANGELINEUNIVERSE')->plainTextToken;
+        return $this->controller->resSuccess([
+            'token' => $token
+        ]);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -42,7 +62,7 @@ class UsersController extends Controller
     {
         $this->controller->validing($request->all(), [
             'name' => 'required',
-            'email' => 'required',
+            'email' => 'required|email|unique:m_user_tabs,email',
             'password' => 'required|min:8',
             'm_company_tabs_id' => 'required',
         ]);
@@ -58,11 +78,10 @@ class UsersController extends Controller
                 $file->move(public_path('avatar'), $filename);
                 $user->update(['avatar' => $filename]);
             }
-            DB::commit();
             $token = $user->createToken('ANGELINEUNIVERSE');
-            return $this->controller->resSuccess([
-                'token' => $token->plainTextToken
-            ]);
+            Mail::to($request->email)->send(new MailRegister($token->plainTextToken));
+            DB::commit();
+            return $this->controller->resSuccess('USER CREATED');
         } catch (\Throwable $th) {
             DB::rollBack();
             abort(501, $th->getMessage());
@@ -99,5 +118,20 @@ class UsersController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function activated($token)
+    {
+        $tokens = PersonalAccessToken::findToken($token);
+        $user = $tokens->tokenable;
+        if ($user) {
+            DB::beginTransaction();
+            $user->update([
+                'm_status_tabs_id' => 2,
+            ]);
+            DB::commit();
+            return view('users::email.activated');
+        }
+        abort(404);
     }
 }

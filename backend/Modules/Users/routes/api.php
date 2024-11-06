@@ -16,4 +16,5 @@ use Modules\Users\Http\Controllers\UsersController;
 
 Route::prefix('v1')->group(function () {
     Route::post('users', [UsersController::class, 'store']);
+    Route::post('users/login', [UsersController::class, 'login']);
 });

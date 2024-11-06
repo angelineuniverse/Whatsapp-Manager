@@ -10,3 +10,10 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+use Illuminate\Support\Facades\Route;
+use Modules\Users\Http\Controllers\UsersController;
+
+Route::prefix('users')->group(function () {
+    Route::get('email/activated/{token}', [UsersController::class, 'activated']);
+});
