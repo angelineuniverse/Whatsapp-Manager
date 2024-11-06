@@ -4,7 +4,6 @@ namespace Modules\Master\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-// use Modules\Master\Database\Factories\MCodeTabFactory;
 
 class MCodeTab extends Model
 {
@@ -13,10 +12,27 @@ class MCodeTab extends Model
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable = [];
+    public $timestamps = false;
+    protected $fillable = [
+        'preffix',
+        'start',
+        'length',
+        'year',
+        'description',
+    ];
 
-    // protected static function newFactory(): MCodeTabFactory
-    // {
-    //     // return MCodeTabFactory::new();
-    // }
+    public static function generateCode($preffix)
+    {
+        $code = self::where('preffix', $preffix)->first();
+        if ($code->year != date("y")) {
+            $code->update([
+                'year' => date("y"),
+                'start' => 1
+            ]);
+        }
+        $next_value = $code->start;
+        $code->increment('start', 1);
+        return $code->preffix . $code->year . str_pad($next_value, $code->length, '0', STR_PAD_LEFT);
+    }
+
 }
