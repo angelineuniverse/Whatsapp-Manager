@@ -46,7 +46,7 @@ class CompanyController extends Controller
     {
         $this->controller->validing($request->all(), [
             'name' => 'required|unique:m_company_tabs,name',
-            'email' => 'required'
+            'email' => 'required|email|unique:m_company_tabs,email'
         ]);
 
         try {
