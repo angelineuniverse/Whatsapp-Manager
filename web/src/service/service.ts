@@ -2,16 +2,16 @@ import axios from 'axios';
 import { getCookie } from 'typescript-cookie';
 import { NotificationService } from '@angelineuniverse/design';
 const client = axios.create({
-    baseURL: 'http://localhost:8000',
+    baseURL: process.env.REACT_APP_BASE_URL,
     headers: {
-        'x-auth-token': getCookie('LOG')
+        'Authorization': getCookie('LOG')
     }
 });
 
 client.interceptors.request.use((config) => {
     const token = getCookie('LOG');
     if (token) {
-        config.headers['x-auth-token'] = token;
+        config.headers['Authorization'] = token;
     }
     return config;
 });
@@ -32,16 +32,14 @@ client.interceptors.response.use(
         return response;
     },
     function (err) {
-        // if (err?.status === 401) {
-            NotificationService.show({
-                key: 'error',
-                position: 'top-right',
-                theme: 'error',
-                title: err?.response?.data?.notif?.title,
-                body: err?.response?.data?.notif?.body,
-                duration: 5000
-            })
-        // }
+        NotificationService.show({
+            key: 'error',
+            position: 'top-right',
+            theme: 'error',
+            title: err?.response?.data?.notif?.title ?? 'Oops... something wrong !',
+            body: err?.response?.data?.notif?.body ?? err?.response?.data?.message,
+            duration: 5000
+        })
         return Promise.reject(new Error(err));
     }
 );
