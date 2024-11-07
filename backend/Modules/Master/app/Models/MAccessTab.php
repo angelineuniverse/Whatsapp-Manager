@@ -13,15 +13,22 @@ class MAccessTab extends Model
     /**
      * The attributes that are mass assignable.
      */
+    public $timestamps = false;
     protected $fillable = [
         'title',
         'm_company_tabs_id',
-        'color'
+        'color',
+        'parent_id'
     ];
 
     public function company()
     {
         return $this->hasOne(MCompanyTab::class, 'id', 'm_company_tabs_id');
+    }
+
+    public function child()
+    {
+        return $this->hasMany(MAccessTab::class, 'parent_id', 'id');
     }
 
     public function scopeSearch($query, $request = null)
@@ -33,7 +40,7 @@ class MAccessTab extends Model
 
     public function scopeDetail($query)
     {
-        $query->with('company');
+        $query->with('company', 'child');
         return $query;
     }
 
