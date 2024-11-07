@@ -67,7 +67,7 @@ class CompanyController extends Controller
      */
     public function show($id)
     {
-        return $this->controller->resSuccess($this->mCompanyTab->find($id));
+        return $this->controller->resSuccess($this->mCompanyTab->where('id', $id)->detail()->first());
     }
 
     /**
