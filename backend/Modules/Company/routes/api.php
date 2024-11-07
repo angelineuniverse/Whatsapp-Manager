@@ -14,6 +14,9 @@ use Modules\Company\Http\Controllers\CompanyController;
  *
 */
 
-Route::prefix('v1')->group(function () {
-    Route::resource('company', CompanyController::class);
+Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
+    Route::withoutMiddleware('auth:sanctum')->group(function () {
+        Route::post('company', [UsersController::class, 'store']);
+    });
+    Route::resource('company', CompanyController::class)->except(['store']);
 });
