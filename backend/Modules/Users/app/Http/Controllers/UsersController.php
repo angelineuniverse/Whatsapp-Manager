@@ -181,7 +181,7 @@ class UsersController extends Controller
             $access = $this->mAccessTab->where('id', 1)->where('m_company_tabs_id', $user->m_company_tabs_id)->first();
             /** Kalau ga ada berrti ia user pertama dan jadikan superadmin */
             if (!isset($access)) {
-                $this->mAccessTab->create([
+                $access = $this->mAccessTab->create([
                     'm_company_tabs_id' => $user->m_company_tabs_id,
                     'title' => 'Super Admin',
                     'color' => 'green',
@@ -189,6 +189,7 @@ class UsersController extends Controller
             }
             $user->update([
                 'm_status_tabs_id' => 2,
+                'm_access_tabs_id' => $access->id ?? null
             ]);
             DB::commit();
             return view('users::email.activated');
