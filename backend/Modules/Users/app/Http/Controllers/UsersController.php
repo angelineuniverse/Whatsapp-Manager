@@ -24,6 +24,7 @@ class UsersController extends Controller
         $this->controller = $controller;
         $this->mUserTab = $mUserTab;
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -52,7 +53,13 @@ class UsersController extends Controller
         $token = $user->createToken('ANGELINEUNIVERSE')->plainTextToken;
         return $this->controller->resSuccess([
             'token' => $token
-        ]);
+            ],
+            [
+                'title' => 'Masuk kembali berhasil',
+                'body' => 'Selamat datang kembali di platform Angeline Universe',
+                'theme' => 'success'
+            ]
+        );
     }
 
     /**
@@ -81,7 +88,11 @@ class UsersController extends Controller
             $token = $user->createToken('ANGELINEUNIVERSE');
             Mail::to($request->email)->send(new MailRegister($token->plainTextToken));
             DB::commit();
-            return $this->controller->resSuccess('USER CREATED');
+            return $this->controller->resSuccess("CREATED", [
+                'title' => 'User berhasil dibuat',
+                'body' => 'Harap periksa email pengguna dan lakukan aktivasi akun agar dapat menggunakan aplikasi',
+                'theme' => 'success'
+            ]);
         } catch (\Throwable $th) {
             DB::rollBack();
             abort(501, $th->getMessage());
@@ -109,7 +120,33 @@ class UsersController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $this->controller->validing($request->all(), [
+            'name' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:8',
+        ]);
+
+        try {
+            DB::beginTransaction();
+            $user = $this->mUserTab->where('id', $id)->first();
+            if ($request->hasFile('avatar')) {
+                $file = $request->file('avatar');
+                $filename = 'AVR_' . $user->code . '_' . $file->getClientOriginalName();
+                $this->controller->unlink_filex(public_path('avatar'), $user->avatar);
+                $file->move(public_path('avatar'), $filename);
+                $user->update(['avatar' => $filename]);
+            }
+            $user->update($request->all());
+            DB::commit();
+            return $this->controller->resSuccess("CREATED", [
+                'title' => 'Informasi User berhasil diubah',
+                'body' => 'Informasi User berhasil diubah dan disimpan ke dalam system',
+                'theme' => 'success'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            abort(501, $th->getMessage());
+        }
     }
 
     /**
@@ -117,7 +154,19 @@ class UsersController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            DB::beginTransaction();
+            $this->mUserTab->where('id', $id)->delete();
+            DB::commit();
+            return $this->controller->resSuccess("DELETED", [
+                'title' => 'User berhasil dihapus',
+                'body' => 'Semua informasi terkait user tersebut berhasil dihapus',
+                'theme' => 'success'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            abort(501, $th->getMessage());
+        }
     }
 
     public function activated($token)
