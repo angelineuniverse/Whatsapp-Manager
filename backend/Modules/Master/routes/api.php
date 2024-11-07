@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Master\Http\Controllers\AccessController;
 use Modules\Master\Http\Controllers\MasterController;
+use Modules\Master\Http\Controllers\MenuController;
 
 /*
  *--------------------------------------------------------------------------
@@ -17,4 +18,5 @@ use Modules\Master\Http\Controllers\MasterController;
 
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     Route::resource('access', AccessController::class);
+    Route::resource('menu', MenuController::class);
 });

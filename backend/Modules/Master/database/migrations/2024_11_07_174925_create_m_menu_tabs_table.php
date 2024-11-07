@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('m_access_tabs', function (Blueprint $table) {
+        Schema::create('m_menu_tabs', function (Blueprint $table) {
             $table->integerIncrements('id');
-            $table->unsignedBigInteger('m_company_tabs_id');
-            $table->integer('parent_id');
             $table->string('title');
-            $table->string('color');
-            $table->foreign('m_company_tabs_id')->on('m_company_tabs')->references('id')->cascadeOnDelete();
+            $table->string('url');
+            $table->string('icon')->nullable();
+            $table->tinyInteger('m_status_tabs_id')->default(3)->comment('3 = not active, 2 = active');
+            $table->mediumInteger('sequence');
+            $table->integer('parent_id')->nullable();
         });
     }
 
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('m_access_tabs');
+        Schema::dropIfExists('m_menu_tabs');
     }
 };
