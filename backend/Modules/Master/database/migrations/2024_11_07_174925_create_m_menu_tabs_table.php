@@ -19,7 +19,6 @@ return new class extends Migration
             $table->tinyInteger('m_status_tabs_id')->default(3)->comment('3 = not active, 2 = active');
             $table->mediumInteger('sequence');
             $table->integer('parent_id')->nullable();
-            $table->foreign('m_status_tabs_id')->on('m_status_tabs_id')->references('id')->nullOnDelete();
         });
     }
 

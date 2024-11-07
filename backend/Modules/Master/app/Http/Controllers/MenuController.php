@@ -20,9 +20,9 @@ class MenuController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return $this->controller->resSuccess($this->mMenuTab->where('m_status_tabs_id', 2)->with('child')->get());
+        return $this->controller->resSuccess($this->mMenuTab->where('m_status_tabs_id', 2)->detail()->get());
     }
 
     /**
