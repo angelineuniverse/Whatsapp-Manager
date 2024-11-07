@@ -9,20 +9,22 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\PersonalAccessToken;
+use Modules\Master\Models\MAccessTab;
 use Modules\Master\Models\MCodeTab;
 use Modules\Users\Emails\MailRegister;
 use Modules\Users\Models\MUserTab;
 
 class UsersController extends Controller
 {
-    protected $mUserTab;
-    protected $controller;
+    protected $mUserTab, $controller, $mAccessTab;
     public function __construct(
         Controller $controller,
-        MUserTab $mUserTab
+        MUserTab $mUserTab,
+        MAccessTab $mAccessTab
     ) {
         $this->controller = $controller;
         $this->mUserTab = $mUserTab;
+        $this->mAccessTab = $mAccessTab;
     }
 
     /**
@@ -175,6 +177,16 @@ class UsersController extends Controller
         $user = $tokens->tokenable;
         if ($user) {
             DB::beginTransaction();
+            /** Check apakah ada access master ? */
+            $access = $this->mAccessTab->where('id', 1)->where('m_company_tabs_id', $user->m_company_tabs_id)->first();
+            /** Kalau ga ada berrti ia user pertama dan jadikan superadmin */
+            if (!isset($access)) {
+                $this->mAccessTab->create([
+                    'm_company_tabs_id' => $user->m_company_tabs_id,
+                    'title' => 'Super Admin',
+                    'color' => 'green',
+                ]);
+            }
             $user->update([
                 'm_status_tabs_id' => 2,
             ]);
