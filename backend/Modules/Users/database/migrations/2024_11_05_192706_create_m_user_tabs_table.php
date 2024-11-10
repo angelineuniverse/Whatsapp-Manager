@@ -21,10 +21,8 @@ return new class extends Migration
             $table->string('contact')->nullable();
             $table->string('avatar')->nullable();
             $table->unsignedInteger('m_status_tabs_id');
-            $table->unsignedInteger('m_access_tabs_id')->nullable();
             $table->timestamps();
             $table->foreign('m_company_tabs_id')->on('m_company_tabs')->references('id')->nullOnDelete();
-            $table->foreign('m_access_tabs_id')->on('m_access_tabs')->references('id')->nullOnDelete();
             $table->foreign('m_status_tabs_id')->on('m_status_tabs')->references('id');
         });
     }

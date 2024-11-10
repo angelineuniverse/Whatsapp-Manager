@@ -6,25 +6,27 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\PersonalAccessToken;
-use Modules\Master\Models\MAccessTab;
+use Modules\Company\Models\MRolesTab;
 use Modules\Master\Models\MCodeTab;
 use Modules\Users\Emails\MailRegister;
 use Modules\Users\Models\MUserTab;
+use Modules\Users\Models\TCompanyAdminTab;
 
 class UsersController extends Controller
 {
-    protected $mUserTab, $controller, $mAccessTab;
+    protected $mUserTab, $controller, $mRolesTab, $tCompanyAdminTab;
     public function __construct(
         Controller $controller,
         MUserTab $mUserTab,
-        MAccessTab $mAccessTab
+        MRolesTab $mRolesTab,
+        TCompanyAdminTab $tCompanyAdminTab
     ) {
         $this->controller = $controller;
         $this->mUserTab = $mUserTab;
-        $this->mAccessTab = $mAccessTab;
+        $this->tCompanyAdminTab = $tCompanyAdminTab;
+        $this->mRolesTab = $mRolesTab;
     }
 
     /**
@@ -51,7 +53,7 @@ class UsersController extends Controller
         ]);
 
         if (!Auth::attempt($request->all())) abort(400, "Your information not valid");
-        if (!$user = $this->mUserTab->where('email', $request->email)->where('m_status_tabs_id', 2)->first()) abort(501, "Your account not found !");
+        if (!$user = $this->mUserTab->where('email', $request->email)->where('m_status_tabs_id', 1)->first()) abort(501, "Your account not found !");
         $token = $user->createToken('ANGELINEUNIVERSE')->plainTextToken;
         return $this->controller->resSuccess([
             'token' => $token
@@ -79,7 +81,7 @@ class UsersController extends Controller
         try {
             DB::beginTransaction();
             $request['code'] = MCodeTab::generateCode('USR');
-            $request['m_status_tabs_id'] = 3;
+            $request['m_status_tabs_id'] = 2;
             $user = $this->mUserTab->create($request->all());
             if ($request->hasFile('avatar')) {
                 $file = $request->file('avatar');
@@ -176,21 +178,16 @@ class UsersController extends Controller
         $tokens = PersonalAccessToken::findToken($token);
         $user = $tokens->tokenable;
         if ($user) {
-            DB::beginTransaction();
-            /** Check apakah ada access master ? */
-            $access = $this->mAccessTab->where('id', 1)->where('m_company_tabs_id', $user->m_company_tabs_id)->first();
-            /** Kalau ga ada berrti ia user pertama dan jadikan superadmin */
-            if (!isset($access)) {
-                $access = $this->mAccessTab->create([
+            /** Map untuk Super Admin */
+            $admin = $this->tCompanyAdminTab->where('m_company_tabs_id', $user->m_company_tabs_id)->first();
+            if (!isset($admin)) {
+                $this->tCompanyAdminTab->create([
+                    'm_user_tabs_id' => $user->id,
                     'm_company_tabs_id' => $user->m_company_tabs_id,
-                    'title' => 'Super Admin',
-                    'color' => 'green',
                 ]);
             }
-            $user->update([
-                'm_status_tabs_id' => 2,
-                'm_access_tabs_id' => $access->id ?? null
-            ]);
+            DB::beginTransaction();
+            $user->update(['m_status_tabs_id' => 1]);
             DB::commit();
             return view('users::email.activated');
         }

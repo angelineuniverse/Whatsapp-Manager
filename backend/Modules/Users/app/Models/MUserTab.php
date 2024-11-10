@@ -22,7 +22,7 @@ class MUserTab extends Authenticatable
         'contact',
         'avatar',
         'm_status_tabs_id',
-        'm_access_tabs_id',
+        'm_roles_tabs_id',
     ];
 
     protected function casts(): array

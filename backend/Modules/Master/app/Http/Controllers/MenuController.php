@@ -22,7 +22,7 @@ class MenuController extends Controller
      */
     public function index(Request $request)
     {
-        return $this->controller->resSuccess($this->mMenuTab->where('m_status_tabs_id', 2)->detail()->get());
+        return $this->controller->resSuccess($this->mMenuTab->where('m_status_tabs_id', 1)->detail()->get());
     }
 
     /**

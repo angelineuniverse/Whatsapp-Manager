@@ -11,3 +11,9 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+use Modules\Company\Http\Controllers\CompanyController;
+
+Route::prefix('company')->group(function () {
+    Route::get('email/activated/{token}', [CompanyController::class, 'activated']);
+});
