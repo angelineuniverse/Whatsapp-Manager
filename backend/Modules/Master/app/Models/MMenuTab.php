@@ -24,7 +24,7 @@ class MMenuTab extends Model
 
     public function child()
     {
-        return $this->hasMany(MMenuTab::class, 'parent_id', 'id')->where('m_status_tabs_id', 2)->orderBy('sequence', 'asc');
+        return $this->hasMany(MMenuTab::class, 'parent_id', 'id')->where('m_status_tabs_id', 1)->orderBy('sequence', 'asc');
     }
 
     public function scopeDetail($query)
