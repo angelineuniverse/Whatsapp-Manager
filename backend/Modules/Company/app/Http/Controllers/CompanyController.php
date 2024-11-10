@@ -5,6 +5,9 @@ namespace Modules\Company\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Laravel\Sanctum\PersonalAccessToken;
+use Modules\Company\Emails\CompanyRegister;
 use Modules\Company\Models\MCompanyTab;
 use Modules\Master\Models\MCodeTab;
 
@@ -52,8 +55,10 @@ class CompanyController extends Controller
         try {
             DB::beginTransaction();
             $request['code'] = MCodeTab::generateCode('CPY');
-            $request['m_status_tabs_id'] = 3;
+            $request['m_status_tabs_id'] = 2;
             $company = $this->mCompanyTab->create($request->all());
+            $token = encrypt($request->email);
+            Mail::to($request->email)->send(new CompanyRegister($token));
             DB::commit();
             return $this->controller->resSuccess($company);
         } catch (\Throwable $th) {
@@ -100,5 +105,20 @@ class CompanyController extends Controller
             DB::rollBack();
             abort(501, $th->getMessage());
         }
+    }
+
+    public function activated($token)
+    {
+        $email = decrypt($token);
+        $company = $this->mCompanyTab->where('email', $email)->first();
+        if ($company) {
+            DB::beginTransaction();
+            $company->update([
+                'm_status_tabs_id' => 1,
+            ]);
+            DB::commit();
+            return view('company::email.activated');
+        }
+        abort(404);
     }
 }

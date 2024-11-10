@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('m_code_tabs', function (Blueprint $table) {
             $table->integerIncrements('id');
             $table->string('preffix');
-            $table->integer('start');
-            $table->tinyInteger('length');
+            $table->integer('start')->default(1);
+            $table->integer('length')->default(4);
             $table->smallInteger('year');
             $table->string('description')->nullable();
         });
