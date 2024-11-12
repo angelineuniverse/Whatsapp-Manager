@@ -22,6 +22,8 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
         Route::post('company', [CompanyController::class, 'store']);
     });
     Route::resource('roles', RolesController::class);
-    Route::resource('project', ProjectController::class);
+    Route::resource('project', ProjectController::class)->except(['update']);
     Route::resource('company', CompanyController::class)->except(['store']);
+    Route::post('project/{id}', [ProjectController::class, 'update']);
+    Route::put('project/{id}', [ProjectController::class, 'changeStatus']);
 });

@@ -51,23 +51,23 @@ const Router = createBrowserRouter([
                 path: 'master',
                 children: [
                     {
-                        path: 'akses',
+                        path: 'roles',
                         lazy: lazyWrap(() => import('../layout/base')),
                         children: [
                             {
-                                id: 'akses-index',
+                                id: 'roles-index',
                                 path: '',
-                                lazy: lazyWrap(() => import('../layout/master/akses/index')),
+                                lazy: lazyWrap(() => import('../layout/master/roles/index')),
                             },
                             {
-                                id: 'akses-add',
+                                id: 'roles-add',
                                 path: 'add',
-                                lazy: lazyWrap(() => import('../layout/master/akses/add')),
+                                lazy: lazyWrap(() => import('../layout/master/roles/add')),
                             },
                             {
-                                id: 'akses-show',
+                                id: 'roles-show',
                                 path: 'show/:id',
-                                lazy: lazyWrap(() => import('../layout/master/akses/show')),
+                                lazy: lazyWrap(() => import('../layout/master/roles/show')),
                             },
                         ]
                     },
@@ -87,7 +87,27 @@ const Router = createBrowserRouter([
                             },
                         ]
                     },
-                    
+                    {
+                        path: 'project',
+                        lazy: lazyWrap(() => import('../layout/base')),
+                        children: [
+                            {
+                                id: 'project-index',
+                                path: '',
+                                lazy: lazyWrap(() => import('../layout/master/project/index')),
+                            },
+                            {
+                                id: 'project-add',
+                                path: 'add',
+                                lazy: lazyWrap(() => import('../layout/master/project/add')),
+                            },
+                            {
+                                id: 'project-show',
+                                path: 'show/:id',
+                                lazy: lazyWrap(() => import('../layout/master/project/show')),
+                            },
+                        ]
+                    },
                 ]
             }
         ]

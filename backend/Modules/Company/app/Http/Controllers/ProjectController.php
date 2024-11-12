@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Company\Models\MProjectTab;
-use Modules\Master\Models\MCodeTab;
 
 class ProjectController extends Controller
 {
@@ -22,9 +21,84 @@ class ProjectController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('master::index');
+        return $this->controller->successList(
+            "LIST PROJECT",
+            $this->mProjectTab->where('m_company_tabs_id', auth()->user()->m_company_tabs_id)->query($request)->paginate(10),
+            array(
+                [
+                    'name' => 'Project',
+                    'type' => 'array',
+                    'key' => 'title',
+                    'useSort' => true,
+                    "classNameRow" => "text-start",
+                    'child' => array(
+                        [
+                            "type" => "string",
+                            "key" => "title",
+                            "className" => 'font-intersemibold pb-1 mb-1 border-b border-blue-500'
+                        ],
+                        [
+                            "type" => "string",
+                            "key" => "address",
+                            'className' => 'text-xs'
+                        ],
+                    )
+                ],
+                [
+                    "name" => "Avatar",
+                    "type" => "custom",
+                    "key" => "avatar",
+                ],
+                [
+                    "name" => "Deskripsi",
+                    "type" => "string",
+                    "classNameRow" => "text-start text-xs",
+                    "key" => "description",
+                ],
+                [
+                    "name" => "Status",
+                    "type" => "status",
+                    "key" => "status",
+                    "className" => 'text-xs'
+                ],
+                [
+                    "name" => "Action",
+                    "type" => "action_status",
+                    "ability" => array(
+                        [
+                            'key' => 'activated',
+                            'show_by' => 'm_status_tabs_id',
+                            'title' => 'Aktivasi',
+                            'theme' => 'success',
+                            'show_value' => [2]
+                        ],
+                        [
+                            'key' => 'not_activated',
+                            'show_by' => 'm_status_tabs_id',
+                            'title' => 'Not Aktivasi',
+                            'theme' => 'error',
+                            'show_value' => [1]
+                        ],
+                        [
+                            'key' => 'show',
+                            'show_by' => 'm_status_tabs_id',
+                            'title' => 'Lihat',
+                            'theme' => 'warning',
+                            'show_value' => [1, 2]
+                        ],
+                        [
+                            'key' => 'delete',
+                            'show_by' => 'm_status_tabs_id',
+                            'title' => 'Hapus',
+                            'theme' => 'error',
+                            'show_value' => [1, 2]
+                        ]
+                    ),
+                ],
+            )
+        );
     }
 
     /**
@@ -32,7 +106,44 @@ class ProjectController extends Controller
      */
     public function create()
     {
-        return view('master::create');
+        return $this->controller->resSuccess(
+            array(
+                [
+                    "type" => "text",
+                    "label" => "Nama Project",
+                    "key" => 'title',
+                    'isRequired' => true,
+                    'title' =>  null,
+                    'placeholder' => 'Masukan nama project'
+                ],
+                [
+                    "type" => "text",
+                    "label" => "Alamat",
+                    "key" => 'address',
+                    'isRequired' => true,
+                    'address' =>  null,
+                    'placeholder' => 'Masukan alamat project'
+                ],
+                [
+                    "type" => "textarea",
+                    "label" => "Deskripsi",
+                    "key" => 'description',
+                    'isRequired' => true,
+                    'description' =>  null,
+                    'placeholder' => 'Masukan deskripsi project'
+                ],
+                [
+                    "type" => "upload",
+                    "label" => "Avatar Project",
+                    "key" => 'avatar',
+                    'isRequired' => true,
+                    'avatar' =>  null,
+                    'accept' => 'image/png,image/jpeg,image/jpg',
+                    'description' => "Supported PNG/JPEG/JPG ( Max 5Mb )"
+                ],
+
+            )
+        );
     }
 
     /**
@@ -48,12 +159,12 @@ class ProjectController extends Controller
 
         try {
             DB::beginTransaction();
-            $request['code'] = MCodeTab::generateCode('USR');
             $request['m_company_tabs_id'] = auth()->user()->m_company_tabs_id;
+            $request["m_status_tabs_id"] = 2;
             $project = $this->mProjectTab->create($request->all());
             if ($request->hasFile('avatar')) {
                 $file = $request->file('avatar');
-                $filename = 'AVR_' . $request->code . '_' . $file->getClientOriginalName();
+                $filename = 'AVR' . $project->id . '_' . $file->getClientOriginalName();
                 $file->move(public_path('avatar'), $filename);
                 $project->update(['avatar' => $filename]);
             }
@@ -82,7 +193,47 @@ class ProjectController extends Controller
      */
     public function edit($id)
     {
-        return view('master::edit');
+        $detail = $this->mProjectTab->where('id', $id)->query()->first();
+        return $this->controller->resSuccess(
+            array(
+                [
+                    "type" => "text",
+                    "label" => "Nama Project",
+                    "key" => 'title',
+                    'isRequired' => true,
+                    'title' =>  $detail->title,
+                    'placeholder' => 'Masukan nama project'
+                ],
+                [
+                    "type" => "text",
+                    "label" => "Alamat",
+                    "key" => 'address',
+                    'isRequired' => true,
+                    'address' =>  $detail->address,
+                    'placeholder' => 'Masukan alamat project'
+                ],
+                [
+                    "type" => "textarea",
+                    "label" => "Deskripsi",
+                    "key" => 'description',
+                    'isRequired' => true,
+                    'description' =>  $detail->description,
+                    'placeholder' => 'Masukan deskripsi project'
+                ],
+                [
+                    "type" => "upload",
+                    "label" => "Avatar Project",
+                    "key" => 'avatar',
+                    'isRequired' => true,
+                    'avatar' =>  $detail->avatar,
+                    'filename' => $detail->avatar,
+                    'preview_action' => 'avatar',
+                    'accept' => 'image/png,image/jpeg,image/jpg',
+                    'description' => "Supported PNG/JPEG/JPG ( Max 5Mb )"
+                ],
+
+            )
+        );
     }
 
     /**
@@ -102,7 +253,8 @@ class ProjectController extends Controller
             $project->update($request->all());
             if ($request->hasFile('avatar')) {
                 $file = $request->file('avatar');
-                $filename = 'AVR_' . $request->code . '_' . $file->getClientOriginalName();
+                $filename = 'AVR' . $project->id . '_' . $file->getClientOriginalName();
+                $this->controller->unlink_filex('avatar', $project->avatar);
                 $file->move(public_path('avatar'), $filename);
                 $project->update(['avatar' => $filename]);
             }
@@ -126,17 +278,29 @@ class ProjectController extends Controller
         try {
             DB::beginTransaction();
             $project = $this->mProjectTab->where('id', $id)->first();
-            $project->update($request->all());
-            if ($request->hasFile('avatar')) {
-                $file = $request->file('avatar');
-                $filename = 'AVR_' . $request->code . '_' . $file->getClientOriginalName();
-                $file->move(public_path('avatar'), $filename);
-                $project->update(['avatar' => $filename]);
-            }
+            $this->controller->unlink_filex('avatar', $project->avatar);
+            $project->delete();
+            DB::commit();
+            return $this->controller->resSuccess("DELETED", [
+                'title' => 'Project berhasil dihapus',
+                'body' => 'Project Property anda yang berhasil dihapus di system',
+                'theme' => 'success'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            abort(501, $th->getMessage());
+        }
+    }
+
+    public function changeStatus($id, Request $request)
+    {
+        try {
+            DB::beginTransaction();
+            $this->mProjectTab->where('id', $id)->update($request->all());
             DB::commit();
             return $this->controller->resSuccess("CREATED", [
-                'title' => 'Project berhasil diubah',
-                'body' => 'Project Property anda yang baru berhasil disimpan di system',
+                'title' => 'Status Project berhasil diubah',
+                'body' => 'Status Project Property anda berhasil disimpan di system',
                 'theme' => 'success'
             ]);
         } catch (\Throwable $th) {

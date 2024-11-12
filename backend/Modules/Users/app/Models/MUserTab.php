@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Modules\Master\Models\MStatusTab;
 
 class MUserTab extends Authenticatable
 {
@@ -22,7 +23,6 @@ class MUserTab extends Authenticatable
         'contact',
         'avatar',
         'm_status_tabs_id',
-        'm_roles_tabs_id',
     ];
 
     protected function casts(): array
@@ -30,5 +30,23 @@ class MUserTab extends Authenticatable
         return [
             'password' => 'hashed',
         ];
+    }
+
+    public function status()
+    {
+        return $this->hasOne(MStatusTab::class, 'id', 'm_status_tabs_id');
+    }
+
+    public function user_role()
+    {
+        return $this->hasOne(TUserRolesTab::class, 'm_user_tabs_id', 'id');
+    }
+
+    public function scopeQuery($query, $request = null)
+    {
+        $query->with(['status', 'user_role' => function ($a) {
+            $a->with('role');
+        }]);
+        return $query;
     }
 }

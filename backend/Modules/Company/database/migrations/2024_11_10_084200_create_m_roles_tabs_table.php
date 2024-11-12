@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('m_roles_tabs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('m_project_tabs_id');
-            $table->integer('parent_id');
+            $table->integer('parent_id')->nullable();
             $table->string('title');
             $table->string('color');
             $table->integer('sequence')->default(1);

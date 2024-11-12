@@ -3,11 +3,11 @@ import {
   RouterInterface,
   withRouterInterface,
 } from "../../../router/interface";
-import { add, create } from "./controller";
+import { update, edit } from "./controller";
 import { Button, Checkbox, Form, Icon } from "@angelineuniverse/design";
 import { mapForm } from "../../../service/helper";
 
-class Add extends Component<RouterInterface> {
+class Show extends Component<RouterInterface> {
   state: Readonly<{
     form: undefined;
     check: boolean;
@@ -28,7 +28,7 @@ class Add extends Component<RouterInterface> {
     this.callForm();
   }
   async callForm() {
-    await create().then((res) => {
+    await edit(this.props.params?.id).then((res) => {
       this.setState({
         form: res.data?.data,
       });
@@ -38,8 +38,8 @@ class Add extends Component<RouterInterface> {
     this.setState({
       loading: true,
     });
-    const forms = mapForm(this.state.form, false);
-    await add(forms)
+    const forms = mapForm(this.state.form, true);
+    await update(this.props.params?.id, forms)
       .then(() => {
         this.setState({
           loading: false,
@@ -65,9 +65,9 @@ class Add extends Component<RouterInterface> {
             }}
           />
           <div className="block">
-            <p className=" font-interbold md:text-lg">Tambah data Akses</p>
+            <p className=" font-interbold md:text-lg">Detail Data Project</p>
             <p className=" text-sm font-interregular">
-              Harap lengkapi form yang tersedia dibawah ini
+              Informasi detail data project anda
             </p>
           </div>
         </div>
@@ -78,7 +78,7 @@ class Add extends Component<RouterInterface> {
         />
         <Checkbox
           label="Saya bertanggung jawab dengan informasi di atas ini"
-          className="mt-8"
+          className="mt-5"
           defaultValue={this.state.check}
           onValueChange={(event: boolean) =>
             this.setState({
@@ -87,11 +87,12 @@ class Add extends Component<RouterInterface> {
           }
         />
         <Button
-          title="Simpan Data"
+          title="Simpan Perubahan"
           theme="primary"
           size="small"
           width="block"
           className="mt-4"
+          isDisable={!this.state.check}
           isLoading={this.state.loading}
           onClick={() => this.saved()}
         />
@@ -100,4 +101,4 @@ class Add extends Component<RouterInterface> {
   }
 }
 
-export default withRouterInterface(Add);
+export default withRouterInterface(Show);

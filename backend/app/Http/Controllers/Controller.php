@@ -17,11 +17,11 @@ class Controller
         return response()->json([
             'message' => $message,
             'property' => $data->perPage() == 1000 ? null : [
-                'total' => $data->total(),
-                'count' => $data->count(),
+                'totalPage' => $data->lastPage(),
+                'countItem' => $data->count(),
                 'per_page' => $data->perPage(),
-                'current_page' => $data->currentPage(),
-                'total_pages' => $data->lastPage()
+                'currentPage' => $data->currentPage(),
+                'totalItem' => $data->total()
             ],
             'column' => $property,
             'data' => $data->getCollection(),
@@ -54,5 +54,14 @@ class Controller
         if ($name == null) return;
         $file_loc = public_path($dir . "\\") . $name;
         if (file_exists($file_loc)) unlink($file_loc);
+    }
+
+    public function download($dirname, $filename)
+    {
+        $files = public_path($dirname) . '/' . $filename;
+        if (file_exists($files)) {
+            return response()->download($files);
+        }
+        return response('', 404);
     }
 }

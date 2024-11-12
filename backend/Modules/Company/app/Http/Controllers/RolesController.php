@@ -5,18 +5,22 @@ namespace Modules\Company\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Company\Models\MProjectTab;
 use Modules\Company\Models\MRolesTab;
 
 class RolesController extends Controller
 {
     protected $controller;
     protected $mRolesTab;
+    protected $mProjectTab;
     public function __construct(
         Controller $controller,
-        MRolesTab $mRolesTab
+        MRolesTab $mRolesTab,
+        MProjectTab $mProjectTab
     ) {
         $this->controller = $controller;
         $this->mRolesTab = $mRolesTab;
+        $this->mProjectTab = $mProjectTab;
     }
     /**
      * Display a listing of the resource.
@@ -25,14 +29,14 @@ class RolesController extends Controller
     {
         return $this->controller->successList(
             'INDEX ROLES',
-            $this->mRolesTab->search($request)->detail()->paginate(10),
+            $this->mRolesTab->search($request)->detail()->paginate(5),
             [
-                ["name" => "Nama Roles", "key" => "title", 'type' => 'string'],
+                ["name" => "Nama Roles", "key" => "title", 'type' => 'string', 'classNameRow' => 'text-start font-intersemibold'],
+                ["name" => "Project", "key" => "project.title", 'type' => 'string', 'classNameRow' => 'text-start font-intersemibold'],
                 ["name" => "Parent Roles", "key" => "parent.title", 'type' => 'string', 'className' => 'text-center',],
-                ["name" => "Total Pengguna", "key" => "users_count", 'type' =>
-                'string', 'className' => 'text-center', 'classNameRow' => 'text-center'],
+                ["name" => "Total Pengguna", "key" => "users_count", 'type' => 'string', 'className' => 'text-center', 'classNameRow' => 'text-center'],
                 ["name" => "Color", "key" => "color", 'type' => 'custom', 'classNameRow' => 'text-center'],
-                ["type" => 'action', "ability" => ["SHOW", "DELETE"]]
+                ["type" => 'action', "ability" => ["EDIT", "DELETE"]]
             ]
         );
     }
@@ -57,6 +61,7 @@ class RolesController extends Controller
                     "label" => "Parent Roles",
                     "type" => "select",
                     "isRequired" => false,
+                    'useClear' => true,
                     "parent_id" => null,
                     "description" => 'Kosongkan apabila tidak memiliki parent Roles',
                     "placeholder" => "Pilih Parent Roles",
@@ -64,6 +69,21 @@ class RolesController extends Controller
                         'keyValue' => 'id',
                         'keyOption' => 'title',
                         'options' => $this->mRolesTab->get()
+                    ]
+                ],
+                [
+                    "key" => 'm_project_tabs_id',
+                    "label" => "Pilih Project",
+                    "type" => "select",
+                    "isRequired" => true,
+                    'useClear' => true,
+                    "m_project_tabs_id" => null,
+                    "placeholder" => "Pilih Project",
+                    "description" => 'Hanya Project yang statusnya Active yang dapat dipilih',
+                    'list' => [
+                        'keyValue' => 'id',
+                        'keyOption' => 'title',
+                        'options' => $this->mProjectTab->where('m_status_tabs_id', 1)->get()
                     ]
                 ],
                 [
@@ -104,7 +124,6 @@ class RolesController extends Controller
 
         try {
             DB::beginTransaction();
-            $request['m_company_tabs_id'] = auth()->user()->m_company_tabs_id;
             $access = $this->mRolesTab->create($request->all());
             DB::commit();
             return $this->controller->resSuccess($access, [
@@ -146,7 +165,8 @@ class RolesController extends Controller
                     "label" => "Parent Roles",
                     "type" => "select",
                     "isRequired" => false,
-                    "placeholder" => $detail->parent->title ?? null,
+                    "useClear" => true,
+                    "placeholder" => "Pilih Parent Roles",
                     "parent_id" => $detail->parent_id ?? null,
                     "description" => 'Kosongkan apabila tidak memiliki parent Roles',
                     'list' => [
@@ -161,7 +181,7 @@ class RolesController extends Controller
                     "type" => "select",
                     "isRequired" => true,
                     "color" => $detail->color,
-                    "placeholder" => $detail->color,
+                    "placeholder" => "Pilih warna roles",
                     'list' => [
                         'keyValue' => 'title',
                         'keyOption' => 'title',

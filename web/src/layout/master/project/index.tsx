@@ -4,10 +4,10 @@ import {
   withRouterInterface,
 } from "../../../router/interface";
 import { Button, Dialog, Table } from "@angelineuniverse/design";
-import { remove, tables } from "./controller";
+import { remove, tables, activated } from "./controller";
 import clsx from "clsx";
 
-class Akses extends Component<RouterInterface> {
+class Index extends Component<RouterInterface> {
   state: Readonly<{
     index: any;
     detail: any;
@@ -20,6 +20,7 @@ class Akses extends Component<RouterInterface> {
       index: {
         column: [],
         data: undefined,
+        property: undefined,
       },
       detail: undefined,
       popDelete: false,
@@ -37,11 +38,16 @@ class Akses extends Component<RouterInterface> {
         index: {
           column: res.data.column,
           data: res.data.data,
+          property: res.data.property,
         },
       });
     });
   }
-
+  async activasi(row: any, status: number) {
+    await activated(row.id, { m_status_tabs_id: status }).then((res) => {
+      this.callTable();
+    });
+  }
   async deleted() {
     this.setState({
       loading: true,
@@ -69,18 +75,31 @@ class Akses extends Component<RouterInterface> {
           <Table
             useCreate
             useHeadline
-            title="Atur semua Akses"
-            createTitle="Tambah Akses"
+            title="Kelola semua Project"
+            createTitle="Tambah Project"
+            property={this.state.index.property}
+            onEvent={(event, key) => {
+              switch (key) {
+                case "activated":
+                  this.activasi(event, 1);
+                  break;
+                case "not_activated":
+                  this.activasi(event, 2);
+                  break;
+                case "delete":
+                  this.setState({
+                    detail: event,
+                    popDelete: true,
+                  });
+                  break;
+                default:
+                  this.props.navigate("show/" + event.id);
+                  break;
+              }
+            }}
             create={() => {
               this.props.navigate("add");
             }}
-            delete={(event) => {
-              this.setState({
-                detail: event,
-                popDelete: true,
-              });
-            }}
-            show={(event) => this.props.navigate("show/" + event.id)}
             column={this.state.index.column}
             data={this.state.index.data}
             custom={(row: any) => {
@@ -94,6 +113,7 @@ class Akses extends Component<RouterInterface> {
                       )}
                     ></div>
                   )}
+                  {row.link && <img width={80} src={row.link} alt="avatar" />}
                 </div>
               );
             }}
@@ -142,4 +162,4 @@ class Akses extends Component<RouterInterface> {
   }
 }
 
-export default withRouterInterface(Akses);
+export default withRouterInterface(Index);

@@ -32,9 +32,77 @@ class UsersController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('users::index');
+        return $this->controller->successList(
+            "LIST PROJECT",
+            $this->mUserTab->where('m_company_tabs_id', auth()->user()->m_company_tabs_id)->query($request)->paginate(10),
+            array(
+                [
+                    'name' => 'Pengguna',
+                    'type' => 'array',
+                    'key' => 'title',
+                    'useSort' => true,
+                    "classNameRow" => "text-start",
+                    'child' => array(
+                        [
+                            "type" => "string",
+                            "key" => "name",
+                            "className" => 'font-intersemibold pb-1 mb-1 border-b border-blue-500'
+                        ],
+                        [
+                            "type" => "string",
+                            "key" => "email",
+                            'className' => 'text-xs'
+                        ],
+                    )
+                ],
+                [
+                    "name" => "Role",
+                    "type" => "string",
+                    "className" => "text-center font-intermedium text-xs",
+                    "key" => "user_role.role.title",
+                ],
+                [
+                    "name" => "Contact",
+                    "type" => "string",
+                    "classNameRow" => "text-start text-xs",
+                    "key" => "contact",
+                ],
+                [
+                    "name" => "Code Pengguna",
+                    "type" => "string",
+                    "className" => "text-center font-intermedium text-xs",
+                    "key" => "code",
+                ],
+                [
+                    "name" => "Status",
+                    "type" => "status",
+                    "key" => "status",
+                    "className" => 'text-xs'
+                ],
+                [
+                    "name" => "Action",
+                    "type" => "action_status",
+                    "ability" => array(
+                        [
+                            'key' => 'show',
+                            'show_by' => 'm_status_tabs_id',
+                            'title' => 'Detail',
+                            'theme' => 'success',
+                            'show_value' => [1, 2]
+                        ],
+                        [
+                            'key' => 'delete',
+                            'show_by' => 'm_status_tabs_id',
+                            'title' => 'Hapus',
+                            'theme' => 'error',
+                            'show_value' => [1, 2]
+                        ]
+                    ),
+                ],
+            )
+        );
     }
 
     /**
