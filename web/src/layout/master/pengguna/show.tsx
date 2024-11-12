@@ -65,9 +65,11 @@ class Show extends Component<RouterInterface> {
             }}
           />
           <div className="block">
-            <p className=" font-interbold md:text-lg">Detail Data Project</p>
+            <p className=" font-interbold md:text-lg">
+              Detail Informasi Pengguna
+            </p>
             <p className=" text-sm font-interregular">
-              Informasi detail data project anda
+              Informasi detail pengguna dapat anda lihat dibawah ini
             </p>
           </div>
         </div>

@@ -85,6 +85,11 @@ const Router = createBrowserRouter([
                                 path: 'add',
                                 lazy: lazyWrap(() => import('../layout/master/pengguna/add')),
                             },
+                            {
+                                id: 'pengguna-show',
+                                path: 'show/:id',
+                                lazy: lazyWrap(() => import('../layout/master/pengguna/show')),
+                            },
                         ]
                     },
                     {

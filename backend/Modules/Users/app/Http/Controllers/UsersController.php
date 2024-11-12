@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\PersonalAccessToken;
+use Modules\Company\Models\MProjectTab;
 use Modules\Company\Models\MRolesTab;
 use Modules\Master\Models\MCodeTab;
 use Modules\Users\Emails\MailRegister;
@@ -16,17 +17,19 @@ use Modules\Users\Models\TCompanyAdminTab;
 
 class UsersController extends Controller
 {
-    protected $mUserTab, $controller, $mRolesTab, $tCompanyAdminTab;
+    protected $mUserTab, $controller, $mRolesTab, $tCompanyAdminTab, $mProjectTab;
     public function __construct(
         Controller $controller,
         MUserTab $mUserTab,
         MRolesTab $mRolesTab,
+        MProjectTab $mProjectTab,
         TCompanyAdminTab $tCompanyAdminTab
     ) {
         $this->controller = $controller;
         $this->mUserTab = $mUserTab;
         $this->tCompanyAdminTab = $tCompanyAdminTab;
         $this->mRolesTab = $mRolesTab;
+        $this->mProjectTab = $mProjectTab;
     }
 
     /**
@@ -110,7 +113,74 @@ class UsersController extends Controller
      */
     public function create()
     {
-        return view('users::create');
+        return $this->controller->resSuccess(
+            array(
+                [
+                    "type" => "text",
+                    "label" => "Nama Pengguna",
+                    "key" => 'name',
+                    'isRequired' => true,
+                    'name' =>  null,
+                    'placeholder' => 'Masukan nama pengguna'
+                ],
+                [
+                    "type" => "text",
+                    "label" => "Email",
+                    "key" => 'email',
+                    'isRequired' => true,
+                    'email' =>  null,
+                    'placeholder' => 'Masukan alamat email aktif'
+                ],
+                [
+                    "type" => "number",
+                    "label" => "No. Whatsapp",
+                    "key" => 'contact',
+                    'isRequired' => true,
+                    'contact' =>  null,
+                    'placeholder' => 'Masukan Nomor Whatsapp'
+                ],
+                [
+                    "type" => "upload",
+                    "label" => "Foto Profile",
+                    "key" => 'avatar',
+                    'isRequired' => true,
+                    'avatar' =>  null,
+                    'accept' => 'image/png,image/jpeg,image/jpg',
+                    'description' => "Supported PNG/JPEG/JPG ( Max 5Mb )"
+                ],
+                [
+                    "key" => 'm_project_tabs_id',
+                    "label" => "Pilih Project",
+                    "type" => "select",
+                    "isRequired" => true,
+                    'useClear' => true,
+                    "m_project_tabs_id" => null,
+                    "placeholder" => "Pilih Project",
+                    "description" => 'Hanya Project yang statusnya Active yang dapat dipilih',
+                    'list' => [
+                        'keyValue' => 'id',
+                        'keyOption' => 'title',
+                        'options' => $this->mProjectTab->where('m_status_tabs_id', 1)->get()
+                    ]
+                ],
+                [
+                    "key" => 'm_roles_tabs_id',
+                    "label" => "Pilih Role",
+                    "type" => "select",
+                    "isRequired" => true,
+                    'useClear' => true,
+                    "m_roles_tabs_id" => null,
+                    "readonly" => true,
+                    "placeholder" => "Pilih Role",
+                    "description" => 'Hanya Role yang statusnya Active yang dapat dipilih',
+                    'list' => [
+                        'keyValue' => 'id',
+                        'keyOption' => 'title',
+                        'options' => $this->mRolesTab->where('m_project_tabs_id', 1)->get()
+                    ]
+                ],
+            )
+        );
     }
 
     public function login(Request $request)

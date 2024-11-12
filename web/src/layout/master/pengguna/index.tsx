@@ -50,6 +50,19 @@ class Pengguna extends Component<RouterInterface> {
             }}
             column={this.state.index.column}
             data={this.state.index.data}
+            onEvent={(event, key) => {
+              switch (key) {
+                case "delete":
+                  this.setState({
+                    detail: event,
+                    popDelete: true,
+                  });
+                  break;
+                default:
+                  this.props.navigate("show/" + event.id);
+                  break;
+              }
+            }}
           />
         </Suspense>
       </div>

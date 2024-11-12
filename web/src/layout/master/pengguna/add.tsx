@@ -3,7 +3,7 @@ import {
   RouterInterface,
   withRouterInterface,
 } from "../../../router/interface";
-import { form } from "./controller";
+import { create } from "./controller";
 import { Button, Checkbox, Form, Icon } from "@angelineuniverse/design";
 
 class Add extends Component<RouterInterface> {
@@ -24,12 +24,17 @@ class Add extends Component<RouterInterface> {
   componentDidMount(): void {
     this.callForm();
   }
-  callForm() {
-    form().then((res) => {
+  async callForm() {
+    await create().then((res) => {
       this.setState({
         form: res.data?.data,
       });
     });
+  }
+  async onChangeSelect(value: any, key: string) {
+    if (key === "m_project_tabs_id") {
+      console.log(value, key);
+    }
   }
   render(): ReactNode {
     return (
@@ -45,7 +50,9 @@ class Add extends Component<RouterInterface> {
             }}
           />
           <div className="block">
-            <p className=" font-interbold md:text-lg">Tambah data pengguna</p>
+            <p className=" font-interbold md:text-lg capitalize">
+              Tambah pengguna baru
+            </p>
             <p className=" text-sm font-interregular">
               Harap lengkapi form yang tersedia dibawah ini
             </p>
@@ -55,6 +62,9 @@ class Add extends Component<RouterInterface> {
           form={this.state.form}
           classNameLoading="grid grid-cols-4 gap-5 mt-8"
           className="grid grid-cols-4 gap-5 mt-8"
+          onSelect={(event, key) =>
+            this.onChangeSelect(event.target.value, key)
+          }
         />
         <Checkbox
           label="Saya bertanggung jawab dengan informasi di atas ini"
@@ -69,7 +79,7 @@ class Add extends Component<RouterInterface> {
         <Button
           title="Simpan Data"
           theme="primary"
-          size="medium"
+          size="small"
           width="block"
           className="mt-4"
           isDisable={this.state.check}
