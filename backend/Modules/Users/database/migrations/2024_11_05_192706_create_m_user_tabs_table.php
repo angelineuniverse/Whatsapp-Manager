@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('code');
             $table->string('email');
             $table->string('name');
-            $table->string('password');
+            $table->string('password')->nullable();
             $table->string('contact')->nullable();
             $table->string('avatar')->nullable();
             $table->unsignedInteger('m_status_tabs_id');

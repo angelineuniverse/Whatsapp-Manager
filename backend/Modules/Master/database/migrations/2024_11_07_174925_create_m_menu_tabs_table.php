@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->string('url');
             $table->string('icon')->nullable();
-            $table->tinyInteger('m_status_tabs_id')->default(3)->comment('3 = not active, 2 = active');
+            $table->tinyInteger('m_status_tabs_id')->default(1)->comment('2 = not active, 1 = active');
             $table->mediumInteger('sequence');
             $table->integer('parent_id')->nullable();
         });

@@ -5,6 +5,7 @@ namespace Modules\Company\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Users\Models\MUserTab;
+use Modules\Users\Models\TUserRolesTab;
 
 // use Modules\Company\Database\Factories\MRolesTabFactory;
 
@@ -19,6 +20,20 @@ class MRolesTab extends Model
         'color',
         'parent_id'
     ];
+
+    public $appends = [
+        'users_count'
+    ];
+
+    public function getUsersCountAttribute()
+    {
+        return count($this->user);
+    }
+
+    public function user()
+    {
+        return $this->hasMany(TUserRolesTab::class, 'm_roles_tabs_id', 'id');
+    }
 
     public function project()
     {

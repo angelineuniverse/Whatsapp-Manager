@@ -32,8 +32,8 @@ class Index extends Component<RouterInterface> {
   componentDidMount(): void {
     this.callTable();
   }
-  async callTable() {
-    await tables().then((res) => {
+  async callTable(page?: object) {
+    await tables(page).then((res) => {
       this.setState({
         index: {
           column: res.data.column,
@@ -78,6 +78,9 @@ class Index extends Component<RouterInterface> {
             title="Kelola semua Project"
             createTitle="Tambah Project"
             property={this.state.index.property}
+            changePage={(page: number) => {
+              this.callTable({ page: page });
+            }}
             onEvent={(event, key) => {
               switch (key) {
                 case "activated":
@@ -102,7 +105,7 @@ class Index extends Component<RouterInterface> {
             }}
             column={this.state.index.column}
             data={this.state.index.data}
-            custom={(row: any) => {
+            custom={(row: any, key: string) => {
               return (
                 <div>
                   {row.color && (
@@ -113,7 +116,13 @@ class Index extends Component<RouterInterface> {
                       )}
                     ></div>
                   )}
-                  {row.link && <img width={80} src={row.link} alt="avatar" />}
+                  {key === "avatar" && (
+                    <img
+                      src={row.link}
+                      alt="avatar"
+                      className="mx-auto w-14 h-14"
+                    />
+                  )}
                 </div>
               );
             }}

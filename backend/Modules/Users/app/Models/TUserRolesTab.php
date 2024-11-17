@@ -13,6 +13,7 @@ class TUserRolesTab extends Model
     /**
      * The attributes that are mass assignable.
      */
+    public $timestamps = false;
     protected $fillable = [
         'm_user_tabs_id',
         'm_roles_tabs_id',

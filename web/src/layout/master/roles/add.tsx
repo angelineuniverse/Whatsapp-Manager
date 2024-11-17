@@ -44,6 +44,7 @@ class Add extends Component<RouterInterface> {
         this.setState({
           loading: false,
           form: undefined,
+          check: false,
         });
         this.callForm();
       })

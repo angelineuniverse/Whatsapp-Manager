@@ -29,11 +29,11 @@ class RolesController extends Controller
     {
         return $this->controller->successList(
             'INDEX ROLES',
-            $this->mRolesTab->search($request)->detail()->paginate(5),
+            $this->mRolesTab->search($request)->detail()->orderBy($request->key ?? 'id', $request->type ?? 'desc')->paginate(10),
             [
-                ["name" => "Nama Roles", "key" => "title", 'type' => 'string', 'classNameRow' => 'text-start font-intersemibold'],
+                ["name" => "Nama Roles", 'useSort' => true, "key" => "title", 'type' => 'string', 'classNameRow' => 'text-start font-intersemibold'],
                 ["name" => "Project", "key" => "project.title", 'type' => 'string', 'classNameRow' => 'text-start font-intersemibold'],
-                ["name" => "Parent Roles", "key" => "parent.title", 'type' => 'string', 'className' => 'text-center',],
+                ["name" => "Parent Roles", "key" => "parent", 'type' => 'custom', 'className' => 'text-center',],
                 ["name" => "Total Pengguna", "key" => "users_count", 'type' => 'string', 'className' => 'text-center', 'classNameRow' => 'text-center'],
                 ["name" => "Color", "key" => "color", 'type' => 'custom', 'classNameRow' => 'text-center'],
                 ["type" => 'action', "ability" => ["EDIT", "DELETE"]]
@@ -61,7 +61,6 @@ class RolesController extends Controller
                     "label" => "Parent Roles",
                     "type" => "select",
                     "isRequired" => false,
-                    'useClear' => true,
                     "parent_id" => null,
                     "description" => 'Kosongkan apabila tidak memiliki parent Roles',
                     "placeholder" => "Pilih Parent Roles",
@@ -139,9 +138,9 @@ class RolesController extends Controller
     /**
      * Show the specified resource.
      */
-    public function show($id)
+    public function show($id, Request $request)
     {
-        return $this->controller->resSuccess($this->mRolesTab->where('m_company_tabs_id', $id)->get());
+        return $this->controller->resSuccess($this->mRolesTab->where('m_project_tabs_id', $id)->search($request)->get());
     }
 
     /**
@@ -165,14 +164,28 @@ class RolesController extends Controller
                     "label" => "Parent Roles",
                     "type" => "select",
                     "isRequired" => false,
-                    "useClear" => true,
-                    "placeholder" => "Pilih Parent Roles",
+                    'useClear' => true,
                     "parent_id" => $detail->parent_id ?? null,
-                    "description" => 'Kosongkan apabila tidak memiliki parent Roles',
+                    "description" => 'Kosongkan apabila tidak memiliki Parent Roles',
+                    "placeholder" => "Pilih Parent Roles",
                     'list' => [
                         'keyValue' => 'id',
                         'keyOption' => 'title',
                         'options' => $this->mRolesTab->get()
+                    ]
+                ],
+                [
+                    "key" => 'm_project_tabs_id',
+                    "label" => "Pilih Project",
+                    "type" => "select",
+                    "isRequired" => true,
+                    "m_project_tabs_id" => $detail->m_project_tabs_id,
+                    "placeholder" => "Pilih Project",
+                    "description" => 'Hanya Project yang statusnya Active yang dapat dipilih',
+                    'list' => [
+                        'keyValue' => 'id',
+                        'keyOption' => 'title',
+                        'options' => $this->mProjectTab->where('m_status_tabs_id', 1)->get()
                     ]
                 ],
                 [

@@ -25,7 +25,7 @@ class ProjectController extends Controller
     {
         return $this->controller->successList(
             "LIST PROJECT",
-            $this->mProjectTab->where('m_company_tabs_id', auth()->user()->m_company_tabs_id)->query($request)->paginate(10),
+            $this->mProjectTab->where('m_company_tabs_id', auth()->user()->m_company_tabs_id)->query($request)->orderBy('id', 'desc')->paginate(10),
             array(
                 [
                     'name' => 'Project',
@@ -55,7 +55,7 @@ class ProjectController extends Controller
                     "name" => "Deskripsi",
                     "type" => "string",
                     "classNameRow" => "text-start text-xs",
-                    "key" => "description",
+                    "key" => "descriptions",
                 ],
                 [
                     "name" => "Status",
@@ -71,21 +71,21 @@ class ProjectController extends Controller
                             'key' => 'activated',
                             'show_by' => 'm_status_tabs_id',
                             'title' => 'Aktivasi',
-                            'theme' => 'success',
+                            'theme' => 'primary',
                             'show_value' => [2]
                         ],
                         [
                             'key' => 'not_activated',
                             'show_by' => 'm_status_tabs_id',
-                            'title' => 'Not Aktivasi',
-                            'theme' => 'error',
+                            'title' => 'Deaktivasi',
+                            'theme' => 'warning',
                             'show_value' => [1]
                         ],
                         [
                             'key' => 'show',
                             'show_by' => 'm_status_tabs_id',
-                            'title' => 'Lihat',
-                            'theme' => 'warning',
+                            'title' => 'Ubah',
+                            'theme' => 'success',
                             'show_value' => [1, 2]
                         ],
                         [
@@ -127,9 +127,9 @@ class ProjectController extends Controller
                 [
                     "type" => "textarea",
                     "label" => "Deskripsi",
-                    "key" => 'description',
+                    "key" => 'descriptions',
                     'isRequired' => true,
-                    'description' =>  null,
+                    'descriptions' =>  null,
                     'placeholder' => 'Masukan deskripsi project'
                 ],
                 [
@@ -153,13 +153,13 @@ class ProjectController extends Controller
     {
         $this->controller->validing($request->all(), [
             'title' => 'required|unique:m_project_tabs,title',
-            'description' => 'required|min:8',
+            'descriptions' => 'required|min:8',
             'address' => 'required',
         ]);
 
         try {
             DB::beginTransaction();
-            $request['m_company_tabs_id'] = auth()->user()->m_company_tabs_id;
+            $request['m_company_tabs_id'] = $request->m_company_tabs_id ?? auth()->user()->m_company_tabs_id;
             $request["m_status_tabs_id"] = 2;
             $project = $this->mProjectTab->create($request->all());
             if ($request->hasFile('avatar')) {
@@ -215,9 +215,9 @@ class ProjectController extends Controller
                 [
                     "type" => "textarea",
                     "label" => "Deskripsi",
-                    "key" => 'description',
+                    "key" => 'descriptions',
                     'isRequired' => true,
-                    'description' =>  $detail->description,
+                    'descriptions' =>  $detail->descriptions,
                     'placeholder' => 'Masukan deskripsi project'
                 ],
                 [
@@ -243,7 +243,7 @@ class ProjectController extends Controller
     {
         $this->controller->validing($request->all(), [
             'title' => 'required|unique:m_project_tabs,title',
-            'description' => 'required|min:8',
+            'descriptions' => 'required|min:8',
             'address' => 'required',
         ]);
 

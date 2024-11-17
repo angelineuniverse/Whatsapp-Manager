@@ -3,19 +3,23 @@ import {
   RouterInterface,
   withRouterInterface,
 } from "../../../router/interface";
-import { create } from "./controller";
+import { create, store } from "./controller";
+import { show } from "../roles/controller";
 import { Button, Checkbox, Form, Icon } from "@angelineuniverse/design";
+import { mapForm } from "../../../service/helper";
 
 class Add extends Component<RouterInterface> {
   state: Readonly<{
-    form: undefined;
+    form: undefined | Array<any>;
     check: boolean;
+    loading: boolean;
   }>;
   constructor(props: RouterInterface) {
     super(props);
     this.state = {
       form: undefined,
       check: false,
+      loading: false,
     };
 
     this.callForm = this.callForm.bind(this);
@@ -33,8 +37,46 @@ class Add extends Component<RouterInterface> {
   }
   async onChangeSelect(value: any, key: string) {
     if (key === "m_project_tabs_id") {
-      console.log(value, key);
+      await show(value).then(async (res) => {
+        const newState = await this.state.form!.map((obj: any) => {
+          if (obj.key === "m_roles_tabs_id") {
+            return {
+              ...obj,
+              m_roles_tabs_id: null,
+              readonly: false,
+              list: {
+                ...obj.list,
+                options: res.data.data,
+              },
+            };
+          }
+          return obj;
+        });
+        this.setState({
+          form: newState,
+        });
+      });
     }
+  }
+  async saved() {
+    this.setState({
+      loading: true,
+    });
+    const form = mapForm(this.state.form, true);
+    store(form)
+      .then((res) => {
+        console.log(res);
+        this.setState({
+          loading: false,
+          form: undefined,
+        });
+        this.callForm();
+      })
+      .catch((err) => {
+        this.setState({
+          loading: false,
+        });
+      });
   }
   render(): ReactNode {
     return (
@@ -82,7 +124,11 @@ class Add extends Component<RouterInterface> {
           size="small"
           width="block"
           className="mt-4"
-          isDisable={this.state.check}
+          isDisable={!this.state.check}
+          isLoading={this.state.loading}
+          onClick={() => {
+            this.saved();
+          }}
         />
       </div>
     );

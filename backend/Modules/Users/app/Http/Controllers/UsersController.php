@@ -10,22 +10,41 @@ use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\PersonalAccessToken;
 use Modules\Company\Models\MProjectTab;
 use Modules\Company\Models\MRolesTab;
+use Modules\Master\Models\MActionTab;
 use Modules\Master\Models\MCodeTab;
+use Modules\Master\Models\MModuleTab;
 use Modules\Users\Emails\MailRegister;
 use Modules\Users\Models\MUserTab;
 use Modules\Users\Models\TCompanyAdminTab;
+use Modules\Users\Models\TUserLogTab;
+use Modules\Users\Models\TUserProjectTab;
+use Modules\Users\Models\TUserRolesTab;
 
 class UsersController extends Controller
 {
-    protected $mUserTab, $controller, $mRolesTab, $tCompanyAdminTab, $mProjectTab;
+    protected
+        $mUserTab,
+        $controller,
+        $mRolesTab,
+        $tCompanyAdminTab,
+        $mProjectTab,
+        $tUserRolesTab,
+        $tUserLogTab,
+        $tUserProjectTab;
     public function __construct(
         Controller $controller,
         MUserTab $mUserTab,
         MRolesTab $mRolesTab,
         MProjectTab $mProjectTab,
+        TUserRolesTab $tUserRolesTab,
+        TUserProjectTab $tUserProjectTab,
+        TUserLogTab $tUserLogTab,
         TCompanyAdminTab $tCompanyAdminTab
     ) {
         $this->controller = $controller;
+        $this->tUserRolesTab = $tUserRolesTab;
+        $this->tUserProjectTab = $tUserProjectTab;
+        $this->tUserLogTab = $tUserLogTab;
         $this->mUserTab = $mUserTab;
         $this->tCompanyAdminTab = $tCompanyAdminTab;
         $this->mRolesTab = $mRolesTab;
@@ -37,14 +56,20 @@ class UsersController extends Controller
      */
     public function index(Request $request)
     {
+        
         return $this->controller->successList(
             "LIST PROJECT",
-            $this->mUserTab->where('m_company_tabs_id', auth()->user()->m_company_tabs_id)->query($request)->paginate(10),
+            $this->mUserTab
+                ->where('m_company_tabs_id', auth()->user()->m_company_tabs_id)
+                ->query($request)
+                ->whereDoesntHave('company_admin')
+                ->orderBy($request->key ?? 'id', $request->type ?? 'desc')
+                ->paginate(10),
             array(
                 [
                     'name' => 'Pengguna',
                     'type' => 'array',
-                    'key' => 'title',
+                    'key' => 'name',
                     'useSort' => true,
                     "classNameRow" => "text-start",
                     'child' => array(
@@ -61,22 +86,26 @@ class UsersController extends Controller
                     )
                 ],
                 [
-                    "name" => "Role",
-                    "type" => "string",
-                    "className" => "text-center font-intermedium text-xs",
-                    "key" => "user_role.role.title",
+                    "name" => "Avatar",
+                    "type" => "custom",
+                    "key" => "avatar",
                 ],
                 [
-                    "name" => "Contact",
+                    "name" => "No. WhatsApp",
                     "type" => "string",
-                    "classNameRow" => "text-start text-xs",
                     "key" => "contact",
+                    "className" => "text-center text-xs",
                 ],
                 [
-                    "name" => "Code Pengguna",
+                    "name" => "Role",
+                    "type" => "custom",
+                    "key" => "role",
+                ],
+                [
+                    "name" => "Project",
                     "type" => "string",
-                    "className" => "text-center font-intermedium text-xs",
-                    "key" => "code",
+                    "className" => "text-center font-intersemibold text-xs",
+                    "key" => "project.project.title",
                 ],
                 [
                     "name" => "Status",
@@ -129,7 +158,8 @@ class UsersController extends Controller
                     "key" => 'email',
                     'isRequired' => true,
                     'email' =>  null,
-                    'placeholder' => 'Masukan alamat email aktif'
+                    'placeholder' => 'Masukan alamat email aktif',
+                    'description' => "Masukan Email aktif untuk mendapat Email Aktivasi"
                 ],
                 [
                     "type" => "number",
@@ -137,7 +167,8 @@ class UsersController extends Controller
                     "key" => 'contact',
                     'isRequired' => true,
                     'contact' =>  null,
-                    'placeholder' => 'Masukan Nomor Whatsapp'
+                    'placeholder' => 'Masukan Nomor WhatsApp',
+                    'description' => "Masukan No. WhatsApp aktif untuk mendapat Notifikasi"
                 ],
                 [
                     "type" => "upload",
@@ -212,14 +243,14 @@ class UsersController extends Controller
         $this->controller->validing($request->all(), [
             'name' => 'required',
             'email' => 'required|email|unique:m_user_tabs,email',
-            'password' => 'required|min:8',
-            'm_company_tabs_id' => 'required',
+            'contact' => 'required',
         ]);
 
         try {
             DB::beginTransaction();
             $request['code'] = MCodeTab::generateCode('USR');
             $request['m_status_tabs_id'] = 2;
+            $request['m_company_tabs_id'] = auth()->user()->m_company_tabs_id;
             $user = $this->mUserTab->create($request->all());
             if ($request->hasFile('avatar')) {
                 $file = $request->file('avatar');
@@ -227,8 +258,22 @@ class UsersController extends Controller
                 $file->move(public_path('avatar'), $filename);
                 $user->update(['avatar' => $filename]);
             }
+            $this->tUserRolesTab->create([
+                'm_roles_tabs_id' => $request->m_roles_tabs_id,
+                'm_user_tabs_id' => $user->id,
+            ]);
+            $this->tUserProjectTab->create([
+                'm_project_tabs_id' => $request->m_project_tabs_id,
+                'm_user_tabs_id' => $user->id,
+            ]);
             $token = $user->createToken('ANGELINEUNIVERSE');
             Mail::to($request->email)->send(new MailRegister($token->plainTextToken));
+            $this->tUserLogTab->create([
+                'm_user_tabs_id' => auth()->user()->id,
+                'm_module_tabs_id' => MModuleTab::$Pengguna,
+                'm_action_tabs_id' => MActionTab::$ADD,
+                'description' => "Tambah Pengguna Baru",
+            ]);
             DB::commit();
             return $this->controller->resSuccess("CREATED", [
                 'title' => 'User berhasil dibuat',
@@ -252,9 +297,79 @@ class UsersController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit($id, Request $request)
     {
-        return view('users::edit');
+        $user = $this->mUserTab->where('id', $id)->query($request)->first();
+        return $this->controller->resSuccess(
+            array(
+                [
+                    "type" => "text",
+                    "label" => "Nama Pengguna",
+                    "key" => 'name',
+                    'isRequired' => true,
+                    'name' =>  $user->name,
+                    'placeholder' => 'Masukan nama pengguna'
+                ],
+                [
+                    "type" => "text",
+                    "label" => "Email",
+                    "key" => 'email',
+                    'isRequired' => true,
+                    'email' =>  $user->email,
+                    'placeholder' => 'Masukan alamat email aktif',
+                    'description' => "Masukan Email aktif untuk mendapat Email Aktivasi"
+                ],
+                [
+                    "type" => "number",
+                    "label" => "No. Whatsapp",
+                    "key" => 'contact',
+                    'isRequired' => true,
+                    'contact' =>  $user->contact,
+                    'placeholder' => 'Masukan Nomor WhatsApp',
+                    'description' => "Masukan No. WhatsApp aktif untuk mendapat Notifikasi"
+                ],
+                [
+                    "type" => "upload",
+                    "label" => "Foto Profile",
+                    "key" => 'avatar',
+                    'isRequired' => true,
+                    'avatar' =>  $user->avatar,
+                    'filename' => $user->avatar,
+                    'accept' => 'image/png,image/jpeg,image/jpg',
+                    'description' => "Supported PNG/JPEG/JPG ( Max 5Mb )"
+                ],
+                [
+                    "key" => 'm_project_tabs_id',
+                    "label" => "Pilih Project",
+                    "type" => "select",
+                    "isRequired" => true,
+                    'useClear' => true,
+                    "m_project_tabs_id" => $user->project->m_project_tabs_id,
+                    "placeholder" => "Pilih Project",
+                    "description" => 'Hanya Project yang statusnya Active yang dapat dipilih',
+                    'list' => [
+                        'keyValue' => 'id',
+                        'keyOption' => 'title',
+                        'options' => $this->mProjectTab->where('m_status_tabs_id', 1)->get()
+                    ]
+                ],
+                [
+                    "key" => 'm_roles_tabs_id',
+                    "label" => "Pilih Role",
+                    "type" => "select",
+                    "isRequired" => true,
+                    'useClear' => true,
+                    "m_roles_tabs_id" => $user->user_role->m_roles_tabs_id,
+                    "placeholder" => "Pilih Role",
+                    "description" => 'Hanya Role yang statusnya Active yang dapat dipilih',
+                    'list' => [
+                        'keyValue' => 'id',
+                        'keyOption' => 'title',
+                        'options' => $this->mRolesTab->where('m_project_tabs_id', $user->project->m_project_tabs_id)->get()
+                    ]
+                ],
+            )
+        );
     }
 
     /**
@@ -265,12 +380,13 @@ class UsersController extends Controller
         $this->controller->validing($request->all(), [
             'name' => 'required',
             'email' => 'required|email',
-            'password' => 'required|min:8',
+            'contact' => 'required|min:11',
         ]);
 
         try {
             DB::beginTransaction();
             $user = $this->mUserTab->where('id', $id)->first();
+            $user->update($request->all());
             if ($request->hasFile('avatar')) {
                 $file = $request->file('avatar');
                 $filename = 'AVR_' . $user->code . '_' . $file->getClientOriginalName();
@@ -278,7 +394,12 @@ class UsersController extends Controller
                 $file->move(public_path('avatar'), $filename);
                 $user->update(['avatar' => $filename]);
             }
-            $user->update($request->all());
+            $this->tUserLogTab->create([
+                'm_user_tabs_id' => auth()->user()->id,
+                'm_module_tabs_id' => MModuleTab::$Pengguna,
+                'm_action_tabs_id' => MActionTab::$UPDATE,
+                'description' => "Update Informasi Pengguna",
+            ]);
             DB::commit();
             return $this->controller->resSuccess("CREATED", [
                 'title' => 'Informasi User berhasil diubah',
@@ -299,6 +420,12 @@ class UsersController extends Controller
         try {
             DB::beginTransaction();
             $this->mUserTab->where('id', $id)->delete();
+            $this->tUserLogTab->create([
+                'm_user_tabs_id' => auth()->user()->id,
+                'm_module_tabs_id' => MModuleTab::$Pengguna,
+                'm_action_tabs_id' => MActionTab::$DELETE,
+                'description' => "Hapus Informasi Pengguna",
+            ]);
             DB::commit();
             return $this->controller->resSuccess("DELETED", [
                 'title' => 'User berhasil dihapus',
@@ -316,19 +443,55 @@ class UsersController extends Controller
         $tokens = PersonalAccessToken::findToken($token);
         $user = $tokens->tokenable;
         if ($user) {
-            /** Map untuk Super Admin */
-            $admin = $this->tCompanyAdminTab->where('m_company_tabs_id', $user->m_company_tabs_id)->first();
-            if (!isset($admin)) {
-                $this->tCompanyAdminTab->create([
-                    'm_user_tabs_id' => $user->id,
-                    'm_company_tabs_id' => $user->m_company_tabs_id,
-                ]);
-            }
             DB::beginTransaction();
             $user->update(['m_status_tabs_id' => 1]);
+            $this->tUserLogTab->create([
+                'm_user_tabs_id' => auth()->user()->id,
+                'm_module_tabs_id' => MModuleTab::$Pengguna,
+                'm_action_tabs_id' => MActionTab::$CHANGE,
+                'description' => "Aktivasi Akun Pengguna",
+            ]);
             DB::commit();
             return view('users::email.activated');
         }
         abort(404);
+    }
+
+    public function superadmin(Request $request)
+    {
+        $this->controller->validing($request->all(), [
+            'name' => 'required',
+            'email' => 'required|email|unique:m_user_tabs,email',
+            'contact' => 'required',
+            'm_company_tabs_id' => 'required',
+        ]);
+
+        try {
+            DB::beginTransaction();
+            $request['code'] = MCodeTab::generateCode('USR');
+            $request['m_status_tabs_id'] = 2;
+            $user = $this->mUserTab->create($request->all());
+            if ($request->hasFile('avatar')) {
+                $file = $request->file('avatar');
+                $filename = 'AVR_' . $request->code . '_' . $file->getClientOriginalName();
+                $file->move(public_path('avatar'), $filename);
+                $user->update(['avatar' => $filename]);
+            }
+            $this->tCompanyAdminTab->create([
+                'm_company_tabs_id' => $request->m_company_tabs_id,
+                'm_user_tabs_id' => $user->id,
+            ]);
+            $token = $user->createToken('ANGELINEUNIVERSE');
+            Mail::to($request->email)->send(new MailRegister($token->plainTextToken));
+            DB::commit();
+            return $this->controller->resSuccess("CREATED", [
+                'title' => 'User berhasil dibuat',
+                'body' => 'Harap periksa email pengguna dan lakukan aktivasi akun agar dapat menggunakan aplikasi',
+                'theme' => 'success'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            abort(501, $th->getMessage());
+        }
     }
 }

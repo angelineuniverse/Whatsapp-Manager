@@ -32,8 +32,8 @@ class Akses extends Component<RouterInterface> {
   componentDidMount(): void {
     this.callTable();
   }
-  async callTable() {
-    await tables().then((res) => {
+  async callTable(params?: object) {
+    await tables(params).then((res) => {
       this.setState({
         index: {
           column: res.data.column,
@@ -73,6 +73,15 @@ class Akses extends Component<RouterInterface> {
             useHeadline
             title="Atur semua Roles"
             createTitle="Tambah Roles"
+            onSort={(type, key) => {
+              this.callTable({
+                type: type,
+                key: key,
+              });
+            }}
+            changePage={(page: number) => {
+              this.callTable({ page: page });
+            }}
             create={() => {
               this.props.navigate("add");
             }}
@@ -83,19 +92,33 @@ class Akses extends Component<RouterInterface> {
                 popDelete: true,
               });
             }}
-            show={(event) => this.props.navigate("show/" + event.id)}
+            edit={(event) => this.props.navigate("show/" + event.id)}
             column={this.state.index.column}
             data={this.state.index.data}
-            custom={(row: any) => {
+            custom={(row: any, key: any) => {
               return (
                 <div>
-                  {row.color && (
+                  {key === "color" && row.color && (
                     <div
                       className={clsx(
                         " h-4 w-4 rounded-md mx-auto ",
                         `bg-${row.color}-500`
                       )}
                     ></div>
+                  )}
+                  {key === "parent" && (
+                    <p
+                      className={clsx(
+                        "mx-auto w-fit font-intermedium text-xs",
+                        `text-${row.parent?.color}-700 ${
+                          row.parent
+                            ? `px-2 py-1 rounded-lg bg-${row.parent?.color}-100`
+                            : "p-0"
+                        }`
+                      )}
+                    >
+                      {row.parent?.title ?? "-"}
+                    </p>
                   )}
                 </div>
               );

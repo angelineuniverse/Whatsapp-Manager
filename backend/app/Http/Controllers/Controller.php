@@ -52,7 +52,7 @@ class Controller
     public function unlink_filex($dir, $name)
     {
         if ($name == null) return;
-        $file_loc = public_path($dir . "\\") . $name;
+        $file_loc = public_path($dir) . '/' . $name;
         if (file_exists($file_loc)) unlink($file_loc);
     }
 

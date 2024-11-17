@@ -6,8 +6,10 @@ export function create() {
 export function edit(id: string|undefined) {
     return client.get('/users/'+id+'/edit');
 }
-export function tables() {
-    return client.get('/users');
+export function tables(params?: object) {
+    return client.get('/users', {
+        params: params
+    });
 }
 export function store(data: any) {
     return client.post("/users", data)

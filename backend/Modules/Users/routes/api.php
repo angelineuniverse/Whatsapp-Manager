@@ -16,8 +16,9 @@ use Modules\Users\Http\Controllers\UsersController;
 
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     Route::withoutMiddleware('auth:sanctum')->group(function () {
-        Route::post('users', [UsersController::class, 'store']);
         Route::post('users/login', [UsersController::class, 'login']);
+        Route::post('users/superadmin', [UsersController::class, 'superadmin']);
     });
-    Route::resource('users', UsersController::class)->except(['login', 'store']);
+    Route::resource('users', UsersController::class)->except(['login', 'update', 'superadmin']);
+    Route::post('users/{id}', [UsersController::class, 'update']); 
 });

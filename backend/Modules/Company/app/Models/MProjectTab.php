@@ -19,7 +19,7 @@ class MProjectTab extends Model
         'm_company_tabs_id',
         'title',
         'avatar',
-        'description',
+        'descriptions',
         'address',
         'm_status_tabs_id',
     ];
@@ -30,7 +30,7 @@ class MProjectTab extends Model
 
     public function getLinkAttribute()
     {
-        $files = public_path('avatar') . '/' . $this->avatar;
+        $files = public_path($this->avatar ? 'avatar' : 'files') . '/' . (isset($this->avatar) ? $this->avatar : 'not-found.jpg');
         $type = pathinfo($files, PATHINFO_EXTENSION);
         $data = file_get_contents($files);
         if (file_exists($files)) {

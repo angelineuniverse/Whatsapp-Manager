@@ -36,7 +36,7 @@ class Dashboard extends Component<RouterInterface> {
             <div className="rounded-full h-8 w-8 bg-gray-400"></div>
             <p className=" font-intersemibold text-sm ">Property ERP</p>
           </div>
-          <div className="mt-7 w-full flex flex-col gap-2">
+          <div className="mt-7 w-full flex flex-col gap-y-0.5">
             {this.state.menuList?.map((item) => {
               return (
                 <div key={item.id}>
@@ -61,7 +61,7 @@ class Dashboard extends Component<RouterInterface> {
                     </NavLink>
                   )}
                   {!item.parent_id && item.child.length > 0 && (
-                    <div className="flex flex-col gap-2 ">
+                    <div className="flex flex-col gap-3 ">
                       <div
                         aria-hidden="true"
                         onClick={() => {
@@ -73,7 +73,7 @@ class Dashboard extends Component<RouterInterface> {
                             }),
                           }));
                         }}
-                        className="cursor-pointer flex flex-row mb-1 items-center gap-3 font-intersemibold"
+                        className="cursor-pointer mt-2 flex flex-row items-center w-full gap-x-3 font-intersemibold"
                       >
                         <Icon
                           icon={item.icon ?? "home_simple"}

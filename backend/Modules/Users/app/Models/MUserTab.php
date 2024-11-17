@@ -25,6 +25,10 @@ class MUserTab extends Authenticatable
         'm_status_tabs_id',
     ];
 
+    protected $appends = [
+        'link'
+    ];  
+
     protected function casts(): array
     {
         return [
@@ -32,9 +36,30 @@ class MUserTab extends Authenticatable
         ];
     }
 
+    public function getLinkAttribute()
+    {
+        $files = public_path($this->avatar ? 'avatar' : 'files') . '/' . (isset($this->avatar) ? $this->avatar : 'not-found.jpg');
+        if (file_exists($files)) {
+            $type = pathinfo($files, PATHINFO_EXTENSION);
+            $data = file_get_contents($files);
+            return 'data:image/' . $type . ';base64,' . base64_encode($data);
+        }
+        return null;
+    }
+
     public function status()
     {
         return $this->hasOne(MStatusTab::class, 'id', 'm_status_tabs_id');
+    }
+
+    public function project()
+    {
+        return $this->hasOne(TUserProjectTab::class, 'm_user_tabs_id', 'id');
+    }
+
+    public function company_admin()
+    {
+        return $this->hasOne(TCompanyAdminTab::class, 'm_user_tabs_id', 'id');
     }
 
     public function user_role()
@@ -44,7 +69,9 @@ class MUserTab extends Authenticatable
 
     public function scopeQuery($query, $request = null)
     {
-        $query->with(['status', 'user_role' => function ($a) {
+        $query->with(['status', 'company_admin', 'project' => function ($a) {
+            $a->with('project');
+        }, 'user_role' => function ($a) {
             $a->with('role');
         }]);
         return $query;

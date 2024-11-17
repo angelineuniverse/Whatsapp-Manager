@@ -11,6 +11,12 @@ class MasterDatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // $this->call([]);
+        $this->call([
+            MCodeTabsSeeder::class,
+            MMenuTabsSeeder::class,
+            MModuleTabsSeeder::class,
+            MStatusTabsSeeder::class,
+            MActionTabsSeeder::class
+        ]);
     }
 }
