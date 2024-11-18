@@ -7,20 +7,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Company\Models\MProjectTab;
 use Modules\Company\Models\MRolesTab;
+use Modules\Master\Models\MActionTab;
+use Modules\Master\Models\MModuleTab;
+use Modules\Users\Models\TUserLogTab;
 
 class RolesController extends Controller
 {
-    protected $controller;
-    protected $mRolesTab;
-    protected $mProjectTab;
+    protected $controller,
+        $tUserLogTab,
+        $mRolesTab,
+        $mProjectTab;
     public function __construct(
         Controller $controller,
         MRolesTab $mRolesTab,
-        MProjectTab $mProjectTab
+        MProjectTab $mProjectTab,
+        TUserLogTab $tUserLogTab
     ) {
         $this->controller = $controller;
         $this->mRolesTab = $mRolesTab;
         $this->mProjectTab = $mProjectTab;
+        $this->tUserLogTab = $tUserLogTab;
     }
     /**
      * Display a listing of the resource.
@@ -124,6 +130,13 @@ class RolesController extends Controller
         try {
             DB::beginTransaction();
             $access = $this->mRolesTab->create($request->all());
+            $this->tUserLogTab->create([
+                'm_company_tabs_id' => auth()->user()->m_company_tabs_id,
+                'm_user_tabs_id' => auth()->user()->id,
+                'm_module_tabs_id' => MModuleTab::$ROLES,
+                'm_action_tabs_id' => MActionTab::$ADD,
+                'description' => "Tambah Roles Baru",
+            ]);
             DB::commit();
             return $this->controller->resSuccess($access, [
                 "title" => "Roles berhasil dibuat !",
@@ -226,6 +239,13 @@ class RolesController extends Controller
         try {
             DB::beginTransaction();
             $this->mRolesTab->where('id', $id)->update($request->all());
+            $this->tUserLogTab->create([
+                'm_user_tabs_id' => auth()->user()->id,
+                'm_module_tabs_id' => MModuleTab::$ROLES,
+                'm_action_tabs_id' => MActionTab::$UPDATE,
+                'description' => "Update Informasi Roles",
+                'm_company_tabs_id' => auth()->user()->m_company_tabs_id,
+            ]);
             DB::commit();
             return $this->controller->resSuccess("UPDATED", [
                 "title" => "Roles berhasil diupdate !",
@@ -245,6 +265,13 @@ class RolesController extends Controller
         try {
             DB::beginTransaction();
             $this->mRolesTab->where('id', $id)->delete();
+            $this->tUserLogTab->create([
+                'm_user_tabs_id' => auth()->user()->id,
+                'm_module_tabs_id' => MModuleTab::$ROLES,
+                'm_action_tabs_id' => MActionTab::$DELETE,
+                'description' => "Hapus Informasi Roles",
+                'm_company_tabs_id' => auth()->user()->m_company_tabs_id,
+            ]);
             DB::commit();
             return $this->controller->resSuccess(null, [
                 "title" => "Roles berhasil dihapus !",

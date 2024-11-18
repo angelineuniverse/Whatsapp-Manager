@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('m_company_tabs_id');
             $table->string('title');
             $table->string('avatar')->nullable();
-            $table->string('description')->nullable();
+            $table->string('descriptions')->nullable();
             $table->string('address')->nullable();
             $table->unsignedInteger('m_status_tabs_id')->default(3)->nullable();
             $table->timestamps();

@@ -113,6 +113,27 @@ const Router = createBrowserRouter([
                             },
                         ]
                     },
+                    {
+                        path: 'unit',
+                        lazy: lazyWrap(() => import('../layout/base')),
+                        children: [
+                            {
+                                id: 'unit-index',
+                                path: '',
+                                lazy: lazyWrap(() => import('../layout/master/unit/index')),
+                            },
+                            {
+                                id: 'unit-add',
+                                path: 'add',
+                                lazy: lazyWrap(() => import('../layout/master/unit/add')),
+                            },
+                            {
+                                id: 'unit-show',
+                                path: 'show/:id',
+                                lazy: lazyWrap(() => import('../layout/master/unit/show')),
+                            },
+                        ]
+                    },
                 ]
             }
         ]

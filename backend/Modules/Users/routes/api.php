@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Users\Http\Controllers\ProfileController;
 use Modules\Users\Http\Controllers\UsersController;
 
 /*
@@ -20,5 +21,6 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
         Route::post('users/superadmin', [UsersController::class, 'superadmin']);
     });
     Route::resource('users', UsersController::class)->except(['login', 'update', 'superadmin']);
-    Route::post('users/{id}', [UsersController::class, 'update']); 
+    Route::post('users/{id}', [UsersController::class, 'update']);
+    Route::resource('profile', ProfileController::class);
 });

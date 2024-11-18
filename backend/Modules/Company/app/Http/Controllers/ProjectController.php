@@ -6,17 +6,24 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Company\Models\MProjectTab;
+use Modules\Master\Models\MActionTab;
+use Modules\Master\Models\MModuleTab;
+use Modules\Users\Models\TUserLogTab;
 
 class ProjectController extends Controller
 {
-    protected $controller;
-    protected $mProjectTab;
+    protected
+        $controller,
+        $tUserLogTab,
+        $mProjectTab;
     public function __construct(
         MProjectTab $mProjectTab,
         Controller $controller,
+        TUserLogTab $tUserLogTab
     ) {
         $this->controller = $controller;
         $this->mProjectTab = $mProjectTab;
+        $this->tUserLogTab = $tUserLogTab;
     }
     /**
      * Display a listing of the resource.
@@ -168,6 +175,13 @@ class ProjectController extends Controller
                 $file->move(public_path('avatar'), $filename);
                 $project->update(['avatar' => $filename]);
             }
+            $this->tUserLogTab->create([
+                'm_user_tabs_id' => auth()->user()->id,
+                'm_company_tabs_id' => auth()->user()->m_company_tabs_id,
+                'm_module_tabs_id' => MModuleTab::$PROJECT,
+                'm_action_tabs_id' => MActionTab::$ADD,
+                'description' => "Tambah Project Baru",
+            ]);
             DB::commit();
             return $this->controller->resSuccess("CREATED", [
                 'title' => 'Project berhasil dibuat',
@@ -258,6 +272,13 @@ class ProjectController extends Controller
                 $file->move(public_path('avatar'), $filename);
                 $project->update(['avatar' => $filename]);
             }
+            $this->tUserLogTab->create([
+                'm_user_tabs_id' => auth()->user()->id,
+                'm_module_tabs_id' => MModuleTab::$PROJECT,
+                'm_company_tabs_id' => auth()->user()->m_company_tabs_id,
+                'm_action_tabs_id' => MActionTab::$ADD,
+                'description' => "Update Informasi Project",
+            ]);
             DB::commit();
             return $this->controller->resSuccess("CREATED", [
                 'title' => 'Project berhasil diubah',
@@ -280,6 +301,13 @@ class ProjectController extends Controller
             $project = $this->mProjectTab->where('id', $id)->first();
             $this->controller->unlink_filex('avatar', $project->avatar);
             $project->delete();
+            $this->tUserLogTab->create([
+                'm_user_tabs_id' => auth()->user()->id,
+                'm_company_tabs_id' => auth()->user()->m_company_tabs_id,
+                'm_module_tabs_id' => MModuleTab::$PROJECT,
+                'm_action_tabs_id' => MActionTab::$ADD,
+                'description' => "Hapus Informasi Project",
+            ]);
             DB::commit();
             return $this->controller->resSuccess("DELETED", [
                 'title' => 'Project berhasil dihapus',
@@ -297,6 +325,13 @@ class ProjectController extends Controller
         try {
             DB::beginTransaction();
             $this->mProjectTab->where('id', $id)->update($request->all());
+            $this->tUserLogTab->create([
+                'm_user_tabs_id' => auth()->user()->id,
+                'm_company_tabs_id' => auth()->user()->m_company_tabs_id,
+                'm_module_tabs_id' => MModuleTab::$PROJECT,
+                'm_action_tabs_id' => MActionTab::$CHANGE,
+                'description' => ($request->m_status_tabs_id == 1 ? 'Aktivasi' : 'Deaktikasi') . " Status Project",
+            ]);
             DB::commit();
             return $this->controller->resSuccess("CREATED", [
                 'title' => 'Status Project berhasil diubah',

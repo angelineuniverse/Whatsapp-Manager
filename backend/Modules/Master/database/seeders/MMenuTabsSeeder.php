@@ -39,11 +39,11 @@ class MMenuTabsSeeder extends Seeder
                     'parent_id' => 2,
                 ],
                 [
-                    'title' => 'Project',
-                    'url' => "/project",
-                    'icon' => "element",
+                    'title' => 'Unit',
+                    'url' => "/unit",
+                    'icon' => "home_simple",
                     'm_status_tabs_id' => 1,
-                    'sequence' => 1,
+                    'sequence' => 2,
                     'parent_id' => 2,
                 ],
                 [
@@ -51,7 +51,7 @@ class MMenuTabsSeeder extends Seeder
                     'url' => "/roles",
                     'icon' => "role",
                     'm_status_tabs_id' => 1,
-                    'sequence' => 2,
+                    'sequence' => 3,
                     'parent_id' => 2,
                 ],
                 [
@@ -59,7 +59,7 @@ class MMenuTabsSeeder extends Seeder
                     'url' => "/menu",
                     'icon' => "menu",
                     'm_status_tabs_id' => 1,
-                    'sequence' => 3,
+                    'sequence' => 4,
                     'parent_id' => 2,
                 ],
                 [
@@ -67,7 +67,7 @@ class MMenuTabsSeeder extends Seeder
                     'url' => "/pengguna",
                     'icon' => "person",
                     'm_status_tabs_id' => 1,
-                    'sequence' => 4,
+                    'sequence' => 5,
                     'parent_id' => 2,
                 ],
                 [

@@ -222,7 +222,8 @@ class UsersController extends Controller
         ]);
 
         if (!Auth::attempt($request->all())) abort(400, "Your information not valid");
-        if (!$user = $this->mUserTab->where('email', $request->email)->where('m_status_tabs_id', 1)->first()) abort(501, "Your account not found !");
+        if (!$user = $this->mUserTab->where('email', $request->email)->first()) abort(501, "Your account not found !");
+        if (!$user = $this->mUserTab->where('email', $request->email)->where('m_status_tabs_id', 1)->first()) abort(501, "Your account not active !");
         $token = $user->createToken('ANGELINEUNIVERSE')->plainTextToken;
         return $this->controller->resSuccess([
             'token' => $token
@@ -268,9 +269,9 @@ class UsersController extends Controller
             ]);
             $token = $user->createToken('ANGELINEUNIVERSE');
             Mail::to($request->email)->send(new MailRegister($token->plainTextToken));
-            $this->tUserLogTab->create([
+            $this->tUserLogTab->create(['m_company_tabs_id' => auth()->user()->m_company_tabs_id,
                 'm_user_tabs_id' => auth()->user()->id,
-                'm_module_tabs_id' => MModuleTab::$Pengguna,
+                'm_module_tabs_id' => MModuleTab::$PENGGUNA,
                 'm_action_tabs_id' => MActionTab::$ADD,
                 'description' => "Tambah Pengguna Baru",
             ]);
@@ -396,7 +397,7 @@ class UsersController extends Controller
             }
             $this->tUserLogTab->create([
                 'm_user_tabs_id' => auth()->user()->id,
-                'm_module_tabs_id' => MModuleTab::$Pengguna,
+                'm_module_tabs_id' => MModuleTab::$PENGGUNA,
                 'm_action_tabs_id' => MActionTab::$UPDATE,
                 'description' => "Update Informasi Pengguna",
             ]);
@@ -422,7 +423,7 @@ class UsersController extends Controller
             $this->mUserTab->where('id', $id)->delete();
             $this->tUserLogTab->create([
                 'm_user_tabs_id' => auth()->user()->id,
-                'm_module_tabs_id' => MModuleTab::$Pengguna,
+                'm_module_tabs_id' => MModuleTab::$PENGGUNA,
                 'm_action_tabs_id' => MActionTab::$DELETE,
                 'description' => "Hapus Informasi Pengguna",
             ]);
@@ -447,7 +448,7 @@ class UsersController extends Controller
             $user->update(['m_status_tabs_id' => 1]);
             $this->tUserLogTab->create([
                 'm_user_tabs_id' => auth()->user()->id,
-                'm_module_tabs_id' => MModuleTab::$Pengguna,
+                'm_module_tabs_id' => MModuleTab::$PENGGUNA,
                 'm_action_tabs_id' => MActionTab::$CHANGE,
                 'description' => "Aktivasi Akun Pengguna",
             ]);

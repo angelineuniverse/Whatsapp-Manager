@@ -65,7 +65,6 @@ class Pengguna extends Component<RouterInterface> {
   render(): ReactNode {
     return (
       <div className="">
-        <p>{this.state.index?.data?.name}</p>
         <Suspense>
           <Table
             useCreate

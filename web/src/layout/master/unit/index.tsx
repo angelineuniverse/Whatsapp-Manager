@@ -4,10 +4,10 @@ import {
   withRouterInterface,
 } from "../../../router/interface";
 import { Button, Dialog, Table } from "@angelineuniverse/design";
-import { remove, tables, activated } from "./controller";
+import { tables, remove } from "./controller";
 import clsx from "clsx";
 
-class Index extends Component<RouterInterface> {
+class Units extends Component<RouterInterface> {
   state: Readonly<{
     index: any;
     detail: any;
@@ -22,9 +22,9 @@ class Index extends Component<RouterInterface> {
         data: undefined,
         property: undefined,
       },
-      detail: undefined,
       popDelete: false,
       loading: false,
+      detail: undefined,
     };
     this.callTable = this.callTable.bind(this);
   }
@@ -32,8 +32,8 @@ class Index extends Component<RouterInterface> {
   componentDidMount(): void {
     this.callTable();
   }
-  async callTable(page?: object) {
-    await tables(page).then((res) => {
+  callTable(page?: object) {
+    tables(page).then((res) => {
       this.setState({
         index: {
           column: res.data.column,
@@ -41,11 +41,6 @@ class Index extends Component<RouterInterface> {
           property: res.data.property,
         },
       });
-    });
-  }
-  async activasi(row: any, status: number) {
-    await activated(row.id, { m_status_tabs_id: status }).then((res) => {
-      this.callTable();
     });
   }
   async deleted() {
@@ -74,20 +69,46 @@ class Index extends Component<RouterInterface> {
           <Table
             useCreate
             useHeadline
-            title="Kelola semua Project"
-            createTitle="Tambah Project"
-            property={this.state.index.property}
+            title="Atur semua Unit"
+            createTitle="Tambah Unit"
+            create={() => {
+              this.props.navigate("add");
+            }}
             changePage={(page: number) => {
               this.callTable({ page: page });
             }}
+            onSort={(type, key) => {
+              this.callTable({
+                type: type,
+                key: key,
+              });
+            }}
+            column={this.state.index.column}
+            data={this.state.index.data}
+            property={this.state.index.property}
+            custom={(row: any, key: string) => (
+              <div>
+                {key === "avatar" && (
+                  <img
+                    className=" rounded-full border border-gray-300 mx-auto h-9 w-9"
+                    src={row.link}
+                    alt="avatar"
+                  />
+                )}
+                {key === "role" && (
+                  <p
+                    className={clsx(
+                      `bg-${row.user_role?.role?.color}-100 px-2 py-1 rounded-lg text-xs text-${row.user_role?.role?.color}-700`,
+                      "w-fit font-intermedium mx-auto"
+                    )}
+                  >
+                    {row.user_role?.role?.title ?? "-"}
+                  </p>
+                )}
+              </div>
+            )}
             onEvent={(event, key) => {
               switch (key) {
-                case "activated":
-                  this.activasi(event, 1);
-                  break;
-                case "not_activated":
-                  this.activasi(event, 2);
-                  break;
                 case "delete":
                   this.setState({
                     detail: event,
@@ -98,32 +119,6 @@ class Index extends Component<RouterInterface> {
                   this.props.navigate("show/" + event.id);
                   break;
               }
-            }}
-            create={() => {
-              this.props.navigate("add");
-            }}
-            column={this.state.index.column}
-            data={this.state.index.data}
-            custom={(row: any, key: string) => {
-              return (
-                <div>
-                  {row.color && (
-                    <div
-                      className={clsx(
-                        " h-4 w-4 rounded-md mx-auto ",
-                        `bg-${row.color}-500`
-                      )}
-                    ></div>
-                  )}
-                  {key === "avatar" && (
-                    <img
-                      src={row.link}
-                      alt="avatar"
-                      className="mx-auto w-14 h-14"
-                    />
-                  )}
-                </div>
-              );
             }}
           />
           <Dialog
@@ -170,4 +165,4 @@ class Index extends Component<RouterInterface> {
   }
 }
 
-export default withRouterInterface(Index);
+export default withRouterInterface(Units);
