@@ -2,10 +2,10 @@ import { Component, ReactNode } from "react";
 import {
   RouterInterface,
   withRouterInterface,
-} from "../../../router/interface";
+} from "../../../../router/interface";
 import { update, edit } from "./controller";
 import { Button, Checkbox, Form, Icon } from "@angelineuniverse/design";
-import { mapForm } from "../../../service/helper";
+import { mapForm } from "../../../../service/helper";
 
 class Show extends Component<RouterInterface> {
   state: Readonly<{
@@ -65,11 +65,9 @@ class Show extends Component<RouterInterface> {
             }}
           />
           <div className="block">
-            <p className=" font-interbold md:text-lg">
-              Detail Informasi Pengguna
-            </p>
+            <p className=" font-interbold md:text-lg">Detail Informasi Unit</p>
             <p className=" text-sm font-interregular">
-              Informasi detail pengguna dapat anda lihat dibawah ini
+              Informasi detail unit dapat anda lihat dibawah ini
             </p>
           </div>
         </div>

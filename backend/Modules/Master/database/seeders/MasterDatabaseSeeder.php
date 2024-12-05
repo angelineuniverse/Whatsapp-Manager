@@ -16,7 +16,8 @@ class MasterDatabaseSeeder extends Seeder
             MMenuTabsSeeder::class,
             MModuleTabsSeeder::class,
             MStatusTabsSeeder::class,
-            MActionTabsSeeder::class
+            MActionTabsSeeder::class,
+            MUnitClassSeeder::class
         ]);
     }
 }
