@@ -36,3 +36,11 @@ export function mapForm(form: any, useFile: boolean) {
   
   return forms;
 }
+
+export function numberFormat(value: number) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
+  }).format(value)
+}

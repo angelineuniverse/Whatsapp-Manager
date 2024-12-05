@@ -1,25 +1,25 @@
-import client from "../../../service/service";
+import client from "../../../../service/service";
 
 export function create() {
-    return client.get('/users/create');
+    return client.get('/unit/create');
 }
 export function edit(id: string|undefined) {
-    return client.get('/users/'+id+'/edit');
+    return client.get('/unit/'+id+'/edit');
 }
 export function tables(params?: object) {
-    return client.get('/users', {
+    return client.get('/unit', {
         params: params
     });
 }
 export function store(data: any) {
-    return client.post("/users", data)
+    return client.post("/unit", data)
 }
 export function update(id: string|undefined,data: any) {
-    return client.post("/users/" + id, data)
+    return client.post("/unit/" + id, data)
 }
 export function activated(id: string|undefined,data: any) {
-    return client.put("/users/" + id, data)
+    return client.put("/unit/" + id, data)
 }
 export function remove(id: any) {
-    return client.delete("/users/"+id)
+    return client.delete("/unit/"+id)
 }

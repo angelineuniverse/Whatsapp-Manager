@@ -14,10 +14,12 @@ return new class extends Migration
         Schema::create('m_unit_tabs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('m_project_tabs_id');
+            $table->unsignedBigInteger('m_unit_type_tabs_id');
             $table->string('blok');
             $table->unsignedBigInteger('m_unit_status_tabs_id')->nullable();
             $table->timestamps();
             $table->foreign('m_project_tabs_id')->on('m_project_tabs')->references('id')->cascadeOnDelete();
+            $table->foreign('m_unit_type_tabs_id')->on('m_unit_type_tabs')->references('id')->cascadeOnDelete();
             $table->foreign('m_unit_status_tabs_id')->on('m_unit_status_tabs')->references('id')->nullOnDelete();
         });
     }

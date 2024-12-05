@@ -11,13 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('m_unit_status_tabs', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('m_company_tabs_id');
+        Schema::create('m_unit_class_tabs', function (Blueprint $table) {
+            $table->integerIncrements('id');
             $table->string('title');
-            $table->string('color');
-            $table->timestamps();
-            $table->foreign('m_company_tabs_id')->on('m_company_tabs')->references('id')->cascadeOnDelete();
         });
     }
 
@@ -26,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('m_unit_status_tabs');
+        Schema::dropIfExists('m_unit_class_tabs');
     }
 };

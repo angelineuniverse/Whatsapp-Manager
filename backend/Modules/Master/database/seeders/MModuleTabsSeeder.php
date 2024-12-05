@@ -19,6 +19,7 @@ class MModuleTabsSeeder extends Seeder
                 ['module' => 'Menu'],
                 ['module' => 'Pengguna'],
                 ['module' => 'Profile'],
+                ['module' => 'Unit'],
             )
         );
     }

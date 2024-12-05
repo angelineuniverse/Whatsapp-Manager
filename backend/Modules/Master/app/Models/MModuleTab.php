@@ -21,4 +21,5 @@ class MModuleTab extends Model
     public static $MENU = 3;
     public static $PENGGUNA = 4;
     public static $PROFILE = 5;
+    public static $UNIT = 6;
 }
