@@ -55,14 +55,6 @@ class MMenuTabsSeeder extends Seeder
                     'parent_id' => 2,
                 ],
                 [
-                    'title' => 'Menu',
-                    'url' => "/menu",
-                    'icon' => "menu",
-                    'm_status_tabs_id' => 1,
-                    'sequence' => 4,
-                    'parent_id' => 2,
-                ],
-                [
                     'title' => 'Pengguna',
                     'url' => "/pengguna",
                     'icon' => "person",

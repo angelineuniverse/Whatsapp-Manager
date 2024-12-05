@@ -6,22 +6,29 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Master\Models\MMenuTab;
+use Modules\Users\Models\TCompanyAdminTab;
 
 class MenuController extends Controller
 {
-    protected $mMenuTab, $controller;
+    protected $mMenuTab, $controller, $tCompanyAdminTab;
     public function __construct(
         Controller $controller,
-        MMenuTab $mMenuTab
+        MMenuTab $mMenuTab,
+        TCompanyAdminTab $tCompanyAdminTab
     ) {
         $this->controller = $controller;
         $this->mMenuTab = $mMenuTab;
+        $this->tCompanyAdminTab = $tCompanyAdminTab;
     }
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        // if Super Admin
+        if ($this->tCompanyAdminTab->where('m_user_tabs_id', auth()->user()->id)->first()) {
+            return $this->controller->resSuccess($this->mMenuTab->where('m_status_tabs_id', 1)->detail()->get());
+        }
         return $this->controller->resSuccess($this->mMenuTab->where('m_status_tabs_id', 1)->detail()->get());
     }
 
