@@ -1,4 +1,4 @@
-import { Component, ReactNode } from "react";
+import { Component, ReactNode, Suspense } from "react";
 import {
   RouterInterface,
   withRouterInterface,
@@ -103,33 +103,34 @@ class Add extends Component<RouterInterface> {
         <Form
           form={this.state.form}
           classNameLoading="grid grid-cols-4 gap-5 mt-8"
-          className="grid grid-cols-4 gap-5 mt-8"
+          className="grid grid-cols-4 gap-5 mt-8 mb-8"
           onSelect={(event, key) =>
             this.onChangeSelect(event.target.value, key)
           }
         />
-        <Checkbox
-          label="Saya bertanggung jawab dengan informasi di atas ini"
-          className="mt-8"
-          defaultValue={this.state.check}
-          onValueChange={(event: boolean) =>
-            this.setState({
-              check: event,
-            })
-          }
-        />
-        <Button
-          title="Simpan Data"
-          theme="primary"
-          size="small"
-          width="block"
-          className="mt-4"
-          isDisable={!this.state.check}
-          isLoading={this.state.loading}
-          onClick={() => {
-            this.saved();
-          }}
-        />
+        <Suspense>
+          <Checkbox
+            label="Saya bertanggung jawab dengan informasi di atas ini"
+            checked={this.state.check}
+            onValueChange={(event: boolean) =>
+              this.setState({
+                check: event,
+              })
+            }
+          />
+          <Button
+            title="Simpan Data"
+            theme="primary"
+            size="small"
+            width="block"
+            className="mt-4"
+            isDisable={!this.state.check}
+            isLoading={this.state.loading}
+            onClick={() => {
+              this.saved();
+            }}
+          />
+        </Suspense>
       </div>
     );
   }

@@ -1,9 +1,10 @@
 import { Component } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { Icon } from "@angelineuniverse/design";
-import { RouterInterface } from "../router/interface";
-import { MenuIndex } from "./controller";
+import { RouterInterface, withRouterInterface } from "../router/interface";
+import { MenuIndex, logoutAccount } from "./controller";
 import clsx from "clsx";
+import { Cookies } from "typescript-cookie";
 
 class Dashboard extends Component<RouterInterface> {
   state: Readonly<{
@@ -16,6 +17,7 @@ class Dashboard extends Component<RouterInterface> {
     };
 
     this.callMenuIndex = this.callMenuIndex.bind(this);
+    this.logout = this.logout.bind(this);
   }
 
   componentDidMount(): void {
@@ -29,13 +31,19 @@ class Dashboard extends Component<RouterInterface> {
       });
     });
   }
+  async logout() {
+    await logoutAccount().then(async (res) => {
+      await Cookies.remove("LOG");
+      return this.props.navigate("/auth");
+    });
+  }
   render() {
     return (
       <div className="flex justify-start h-screen overflow-y-hidden">
         <div className="dashboard-menu md:w-2/12 overflow-y-auto md:py-5 py-1 md:px-6 px-1.5 border-r border-gray-200">
           <div className="flex gap-x-4 items-center">
             <div className="rounded-full h-8 w-8 bg-gray-400"></div>
-            <p className=" font-intersemibold text-sm ">Property ERP</p>
+            <p className=" font-intersemibold text-sm ">Angeline</p>
           </div>
           <div className="w-full mt-6 grid grid-cols-1 gap-y-2.5">
             {this.state.menuList?.map((item) => (
@@ -124,6 +132,16 @@ class Dashboard extends Component<RouterInterface> {
                 )}
               </>
             ))}
+            <div
+              onClick={() => this.logout()}
+              key={"logout-account"}
+              className={clsx(
+                "flex gap-x-3 items-center w-full font-intersemibold cursor-pointer hover:text-rose-800"
+              )}
+            >
+              <Icon icon={"logout"} width={20} height={20} color={"#9f1239"} />
+              <p className="my-auto text-sm">Keluar</p>
+            </div>
           </div>
         </div>
         <div className="md:w-10/12 overflow-y-auto px-7 pt-5 bg-white">
@@ -134,4 +152,4 @@ class Dashboard extends Component<RouterInterface> {
   }
 }
 
-export default Dashboard;
+export default withRouterInterface(Dashboard);

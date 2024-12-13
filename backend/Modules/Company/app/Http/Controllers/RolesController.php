@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Company\Models\MProjectTab;
+use Modules\Company\Models\MRolesMenuTab;
 use Modules\Company\Models\MRolesTab;
 use Modules\Master\Models\MActionTab;
+use Modules\Master\Models\MMenuTab;
 use Modules\Master\Models\MModuleTab;
 use Modules\Users\Models\TUserLogTab;
 
@@ -16,17 +18,26 @@ class RolesController extends Controller
     protected $controller,
         $tUserLogTab,
         $mRolesTab,
+        $mMenuTab,
+        $mRolesMenuTab,
+        $mActionTab,
         $mProjectTab;
     public function __construct(
         Controller $controller,
         MRolesTab $mRolesTab,
         MProjectTab $mProjectTab,
-        TUserLogTab $tUserLogTab
+        MMenuTab $mMenuTab,
+        MRolesMenuTab $mRolesMenuTab,
+        TUserLogTab $tUserLogTab,
+        MActionTab $mActionTab
     ) {
         $this->controller = $controller;
         $this->mRolesTab = $mRolesTab;
         $this->mProjectTab = $mProjectTab;
+        $this->mRolesMenuTab = $mRolesMenuTab;
+        $this->mMenuTab = $mMenuTab;
         $this->tUserLogTab = $tUserLogTab;
+        $this->mActionTab = $mActionTab;
     }
     /**
      * Display a listing of the resource.
@@ -52,8 +63,13 @@ class RolesController extends Controller
      */
     public function create()
     {
-        return $this->controller->resSuccess(
-            array(
+        $menu = $this->mMenuTab->whereNotIn('id', [1, 7])->get();
+        $action = $this->mActionTab->all();
+        foreach ($menu as $key => $value) {
+            $value['action'] = $action;
+        }
+        return $this->controller->resSuccess([
+            'form' => array(
                 [
                     "key" => 'title',
                     "label" => "Nama Roles",
@@ -113,8 +129,9 @@ class RolesController extends Controller
                         )
                     ]
                 ],
-            )
-        );
+            ),
+            'menu' => $menu
+        ]);
     }
 
     /**
@@ -129,7 +146,16 @@ class RolesController extends Controller
 
         try {
             DB::beginTransaction();
-            $access = $this->mRolesTab->create($request->all());
+            $role = $this->mRolesTab->create($request->all());
+            if (isset($request->access)) {
+                foreach ($request->access as $key => $value) {
+                    $this->mRolesMenuTab->create([
+                        'm_roles_tabs_id' => $role->id,
+                        'm_menu_tabs_id' => $value['menu'],
+                        'm_action_tabs_id' => count($value['action']) > 0 ? implode(',', $value['action']) : null
+                    ]);
+                }
+            }
             $this->tUserLogTab->create([
                 'm_company_tabs_id' => auth()->user()->m_company_tabs_id,
                 'm_user_tabs_id' => auth()->user()->id,
@@ -138,7 +164,7 @@ class RolesController extends Controller
                 'description' => "Tambah Roles Baru",
             ]);
             DB::commit();
-            return $this->controller->resSuccess($access, [
+            return $this->controller->resSuccess($role, [
                 "title" => "Roles berhasil dibuat !",
                 "body" => "Roles baru berhasil disimpan dan ditambahkan kedalam list"
             ]);
@@ -162,7 +188,20 @@ class RolesController extends Controller
     public function edit($id)
     {
         $detail = $this->mRolesTab->where('id', $id)->detail()->first();
-        return $this->controller->resSuccess(
+        $masterMenu = $this->mMenuTab->whereNotIn('id', [1, 7])->get();
+        $selectedMenu = $this->mRolesMenuTab->where('m_roles_tabs_id', $id)->get();
+        $action = $this->mActionTab->all();
+
+        foreach ($selectedMenu as $key => $value) {
+            foreach ($masterMenu as $master) {
+                if ($master->id == $value->m_menu_tabs_id) {
+                    $master->selected = true;
+                    $master['action'] = explode(',', $value->m_action_tabs_id);
+                }
+            }
+        }
+        return $this->controller->resSuccess([
+            "form" =>
             array(
                 [
                     "key" => 'title',
@@ -224,7 +263,9 @@ class RolesController extends Controller
                     ]
                 ],
             ),
-        );
+            "menu" => $masterMenu,
+            "action" => $action
+        ]);
     }
 
     /**
@@ -233,12 +274,21 @@ class RolesController extends Controller
     public function update(Request $request, $id)
     {
         $this->controller->validing($request->all(), [
-            'title' => 'required|unique:m_roles_tabs,title',
+            'title' => 'required',
             'color' => 'required',
         ]);
         try {
             DB::beginTransaction();
-            $this->mRolesTab->where('id', $id)->update($request->all());
+            $this->mRolesTab->where('id', $id)->update($request->except(['menu']));
+            if (isset($request->menu)) {
+                $this->mRolesMenuTab->where('m_roles_tabs_id', $id)->delete();
+                foreach ($request->menu as $key => $value) {
+                    $this->mRolesMenuTab->create([
+                        'm_roles_tabs_id' => $id,
+                        'm_menu_tabs_id' => $value,
+                    ]);
+                }
+            }
             $this->tUserLogTab->create([
                 'm_user_tabs_id' => auth()->user()->id,
                 'm_module_tabs_id' => MModuleTab::$ROLES,

@@ -35,7 +35,7 @@ class Auth extends Component<RouterInterface> {
     return (
       <div className="h-screen max-h-screen flex justify-center items-center bg-gray-50">
         <div className="rounded-md shadow-xl border border-gray-300 bg-white p-5 w-3/12">
-          <h1 className="uppercase font-interbold text-sm">Property ERP</h1>
+          <h1 className="uppercase font-interbold text-sm">Angeline</h1>
           <h6 className="mt-6 font-interbold text-3xl mb-1">Masuk</h6>
           <p className="text-xs font-interregular">
             Masukan informasi email dan password anda

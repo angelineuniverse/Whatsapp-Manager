@@ -72,7 +72,7 @@ class Show extends Component<RouterInterface> {
         <Checkbox
           label="Saya bertanggung jawab dengan informasi di atas ini"
           className="mt-5"
-          defaultValue={this.state.check}
+          checked={this.state.check}
           onValueChange={(event: boolean) =>
             this.setState({
               check: event,

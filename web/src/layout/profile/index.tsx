@@ -64,14 +64,14 @@ class Index extends Component {
               <Suspense>
                 <Skeleton
                   type="custom"
-                  className="w-32 h-32 mx-auto mb-5 rounded-full"
+                  className="w-32 h-32 mb-5 max-w-32 mx-auto rounded-full"
                 />
                 <Skeleton type="custom" className="w-full h-4" />
                 <Skeleton type="custom" className="w-20 h-4" />
               </Suspense>
             )}
             {this.state.profile && (
-              <div>
+              <div className="text-center">
                 <img
                   src={this.state.profile?.link}
                   alt="profile"

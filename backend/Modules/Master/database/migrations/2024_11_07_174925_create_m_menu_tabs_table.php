@@ -19,6 +19,7 @@ return new class extends Migration
             $table->tinyInteger('m_status_tabs_id')->default(1)->comment('2 = not active, 1 = active');
             $table->mediumInteger('sequence');
             $table->integer('parent_id')->nullable();
+            $table->string('description')->nullable();
         });
     }
 

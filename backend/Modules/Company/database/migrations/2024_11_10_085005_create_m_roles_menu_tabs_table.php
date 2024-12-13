@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('m_roles_tabs_id');
             $table->unsignedInteger('m_menu_tabs_id');
+            $table->string('m_action_tabs_id')->nullable();
         });
     }
 

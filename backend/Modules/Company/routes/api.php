@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Company\Http\Controllers\AccessController;
 use Modules\Company\Http\Controllers\CompanyController;
+use Modules\Company\Http\Controllers\PenggunaController;
 use Modules\Company\Http\Controllers\ProjectController;
 use Modules\Company\Http\Controllers\RolesController;
 use Modules\Company\Http\Controllers\UnitController;
@@ -23,6 +24,7 @@ use Modules\Company\Http\Controllers\UnitTypeController;
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     Route::withoutMiddleware('auth:sanctum')->group(function () {
         Route::post('company', [CompanyController::class, 'store']);
+        Route::post('pengguna/superadmin', [PenggunaController::class, 'superadmin']);
     });
     Route::resource('roles', RolesController::class);
     Route::resource('unitstatus', UnitStatusController::class)->except(['update']);
@@ -30,6 +32,9 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     Route::resource('unit', UnitController::class)->except(['update']);
     Route::resource('project', ProjectController::class)->except(['update']);
     Route::resource('company', CompanyController::class)->except(['store']);
+    Route::resource('pengguna', PenggunaController::class)->except(['update', 'superadmin']);
+
+    Route::post('pengguna/{id}', [PenggunaController::class, 'update']);
     Route::post('unit/{id}', [UnitController::class, 'update']);
     Route::post('unittype/{id}', [UnitTypeController::class, 'update']);
     Route::post('unitstatus/{id}', [UnitStatusController::class, 'update']);

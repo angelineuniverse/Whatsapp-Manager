@@ -1,10 +1,9 @@
 <?php
 
-namespace Modules\Users\Http\Controllers;
+namespace Modules\Company\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -20,7 +19,7 @@ use Modules\Users\Models\TUserLogTab;
 use Modules\Users\Models\TUserProjectTab;
 use Modules\Users\Models\TUserRolesTab;
 
-class UsersController extends Controller
+class PenggunaController extends Controller
 {
     protected
         $mUserTab,
@@ -50,15 +49,14 @@ class UsersController extends Controller
         $this->mRolesTab = $mRolesTab;
         $this->mProjectTab = $mProjectTab;
     }
-
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        
+
         return $this->controller->successList(
-            "LIST PROJECT",
+            "LIST PENGGUNA",
             $this->mUserTab
                 ->where('m_company_tabs_id', auth()->user()->m_company_tabs_id)
                 ->query($request)
@@ -214,28 +212,6 @@ class UsersController extends Controller
         );
     }
 
-    public function login(Request $request)
-    {
-        $this->controller->validing($request->all(), [
-            'email' => 'required',
-            'password' => 'required|min:8',
-        ]);
-
-        if (!Auth::attempt($request->all())) abort(400, "Your information not valid");
-        if (!$user = $this->mUserTab->where('email', $request->email)->first()) abort(501, "Your account not found !");
-        if (!$user = $this->mUserTab->where('email', $request->email)->where('m_status_tabs_id', 1)->first()) abort(501, "Your account not active !");
-        $token = $user->createToken('ANGELINEUNIVERSE')->plainTextToken;
-        return $this->controller->resSuccess([
-            'token' => $token
-            ],
-            [
-                'title' => 'Masuk kembali berhasil',
-                'body' => 'Selamat datang kembali di platform Angeline Universe',
-                'theme' => 'success'
-            ]
-        );
-    }
-
     /**
      * Store a newly created resource in storage.
      */
@@ -269,7 +245,8 @@ class UsersController extends Controller
             ]);
             $token = $user->createToken('ANGELINEUNIVERSE');
             Mail::to($request->email)->send(new MailRegister($token->plainTextToken));
-            $this->tUserLogTab->create(['m_company_tabs_id' => auth()->user()->m_company_tabs_id,
+            $this->tUserLogTab->create([
+                'm_company_tabs_id' => auth()->user()->m_company_tabs_id,
                 'm_user_tabs_id' => auth()->user()->id,
                 'm_module_tabs_id' => MModuleTab::$PENGGUNA,
                 'm_action_tabs_id' => MActionTab::$ADD,
@@ -292,7 +269,7 @@ class UsersController extends Controller
      */
     public function show($id)
     {
-        return view('users::show');
+        return view('company::show');
     }
 
     /**
@@ -399,6 +376,7 @@ class UsersController extends Controller
                 'm_user_tabs_id' => auth()->user()->id,
                 'm_module_tabs_id' => MModuleTab::$PENGGUNA,
                 'm_action_tabs_id' => MActionTab::$UPDATE,
+                'm_company_tabs_id' => auth()->user()->m_company_tabs_id,
                 'description' => "Update Informasi Pengguna",
             ]);
             DB::commit();
@@ -418,11 +396,82 @@ class UsersController extends Controller
      */
     public function destroy($id)
     {
-        auth()->user()->currentAccessToken()->delete();
-        return $this->controller->resSuccess(null, [
-            'title' => 'Kamu telah keluar system',
-            'body' => 'Semua informasi terkait user tersebut berhasil dihapus',
-            'theme' => 'success'
+        try {
+            DB::beginTransaction();
+            $this->mUserTab->where('id', $id)->delete();
+            $this->tUserLogTab->create([
+                'm_user_tabs_id' => auth()->user()->id,
+                'm_company_tabs_id' => auth()->user()->m_company_tabs_id,
+                'm_module_tabs_id' => MModuleTab::$PENGGUNA,
+                'm_action_tabs_id' => MActionTab::$DELETE,
+                'description' => "Hapus Informasi Pengguna",
+            ]);
+            DB::commit();
+            return $this->controller->resSuccess("DELETED", [
+                'title' => 'User berhasil dihapus',
+                'body' => 'Semua informasi terkait user tersebut berhasil dihapus',
+                'theme' => 'success'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            abort(501, $th->getMessage());
+        }
+    }
+
+    public function activated($token)
+    {
+        $tokens = PersonalAccessToken::findToken($token);
+        $user = $tokens->tokenable;
+        if ($user) {
+            DB::beginTransaction();
+            $user->update(['m_status_tabs_id' => 1]);
+            $this->tUserLogTab->create([
+                'm_user_tabs_id' => auth()->user()->id,
+                'm_module_tabs_id' => MModuleTab::$PENGGUNA,
+                'm_action_tabs_id' => MActionTab::$CHANGE,
+                'description' => "Aktivasi Akun Pengguna",
+            ]);
+            DB::commit();
+            return view('users::email.activated');
+        }
+        abort(404);
+    }
+
+    public function superadmin(Request $request)
+    {
+        $this->controller->validing($request->all(), [
+            'name' => 'required',
+            'email' => 'required|email|unique:m_user_tabs,email',
+            'contact' => 'required',
+            'm_company_tabs_id' => 'required',
         ]);
+
+        try {
+            DB::beginTransaction();
+            $request['code'] = MCodeTab::generateCode('USR');
+            $request['m_status_tabs_id'] = 2;
+            $user = $this->mUserTab->create($request->all());
+            if ($request->hasFile('avatar')) {
+                $file = $request->file('avatar');
+                $filename = 'AVR_' . $request->code . '_' . $file->getClientOriginalName();
+                $file->move(public_path('avatar'), $filename);
+                $user->update(['avatar' => $filename]);
+            }
+            $this->tCompanyAdminTab->create([
+                'm_company_tabs_id' => $request->m_company_tabs_id,
+                'm_user_tabs_id' => $user->id,
+            ]);
+            $token = $user->createToken('ANGELINEUNIVERSE');
+            Mail::to($request->email)->send(new MailRegister($token->plainTextToken));
+            DB::commit();
+            return $this->controller->resSuccess("CREATED", [
+                'title' => 'User berhasil dibuat',
+                'body' => 'Harap periksa email pengguna dan lakukan aktivasi akun agar dapat menggunakan aplikasi',
+                'theme' => 'success'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            abort(501, $th->getMessage());
+        }
     }
 }

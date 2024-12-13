@@ -21,4 +21,11 @@ class MActionTab extends Model
     public static $DELETE = 2;
     public static $UPDATE = 3;
     public static $CHANGE = 4;
+
+    protected $appends = ['selected'];
+
+    public function getSelectedAttribute()
+    {
+        return isset($this->attributes['selected']) ? $this->attributes['selected'] : false;
+    }
 }
