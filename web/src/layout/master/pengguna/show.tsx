@@ -76,11 +76,10 @@ class Show extends Component<RouterInterface> {
         <Form
           form={this.state.form}
           classNameLoading="grid grid-cols-4 gap-5 mt-8"
-          className="grid grid-cols-4 gap-5 mt-8"
+          className="grid grid-cols-4 gap-5 my-8"
         />
         <Checkbox
           label="Saya bertanggung jawab dengan informasi di atas ini"
-          className="mt-5"
           checked={this.state.check}
           onValueChange={(event: boolean) =>
             this.setState({

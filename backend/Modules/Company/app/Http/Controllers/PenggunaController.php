@@ -221,6 +221,8 @@ class PenggunaController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:m_user_tabs,email',
             'contact' => 'required',
+            'm_project_tabs_id' => 'required',
+            'm_roles_tabs_id' => 'required',
         ]);
 
         try {
@@ -359,6 +361,8 @@ class PenggunaController extends Controller
             'name' => 'required',
             'email' => 'required|email',
             'contact' => 'required|min:11',
+            'm_project_tabs_id' => 'required',
+            'm_roles_tabs_id' => 'required',
         ]);
 
         try {

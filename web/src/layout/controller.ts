@@ -1,7 +1,7 @@
 import client from "../service/service";
 
 export function MenuIndex() {
-    return client.get('/menu');
+    return client.get('/users');
 }
 
 export function logoutAccount() {

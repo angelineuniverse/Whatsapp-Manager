@@ -9,9 +9,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\PersonalAccessToken;
 use Modules\Company\Models\MProjectTab;
+use Modules\Company\Models\MRolesMenuTab;
 use Modules\Company\Models\MRolesTab;
 use Modules\Master\Models\MActionTab;
 use Modules\Master\Models\MCodeTab;
+use Modules\Master\Models\MMenuTab;
 use Modules\Master\Models\MModuleTab;
 use Modules\Users\Emails\MailRegister;
 use Modules\Users\Models\MUserTab;
@@ -25,17 +27,17 @@ class UsersController extends Controller
     protected
         $mUserTab,
         $controller,
-        $mRolesTab,
+        $mRolesMenuTab,
         $tCompanyAdminTab,
-        $mProjectTab,
+        $mMenuTab,
         $tUserRolesTab,
         $tUserLogTab,
         $tUserProjectTab;
     public function __construct(
         Controller $controller,
         MUserTab $mUserTab,
-        MRolesTab $mRolesTab,
-        MProjectTab $mProjectTab,
+        MRolesMenuTab $mRolesMenuTab,
+        MMenuTab $mMenuTab,
         TUserRolesTab $tUserRolesTab,
         TUserProjectTab $tUserProjectTab,
         TUserLogTab $tUserLogTab,
@@ -47,94 +49,34 @@ class UsersController extends Controller
         $this->tUserLogTab = $tUserLogTab;
         $this->mUserTab = $mUserTab;
         $this->tCompanyAdminTab = $tCompanyAdminTab;
-        $this->mRolesTab = $mRolesTab;
-        $this->mProjectTab = $mProjectTab;
+        $this->mRolesMenuTab = $mRolesMenuTab;
+        $this->mMenuTab = $mMenuTab;
     }
 
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
-        
-        return $this->controller->successList(
-            "LIST PROJECT",
-            $this->mUserTab
-                ->where('m_company_tabs_id', auth()->user()->m_company_tabs_id)
-                ->query($request)
-                ->whereDoesntHave('company_admin')
-                ->orderBy($request->key ?? 'id', $request->type ?? 'desc')
-                ->paginate(10),
-            array(
-                [
-                    'name' => 'Pengguna',
-                    'type' => 'array',
-                    'key' => 'name',
-                    'useSort' => true,
-                    "classNameRow" => "text-start",
-                    'child' => array(
-                        [
-                            "type" => "string",
-                            "key" => "name",
-                            "className" => 'font-intersemibold pb-1 mb-1 border-b border-blue-500'
-                        ],
-                        [
-                            "type" => "string",
-                            "key" => "email",
-                            'className' => 'text-xs'
-                        ],
-                    )
-                ],
-                [
-                    "name" => "Avatar",
-                    "type" => "custom",
-                    "key" => "avatar",
-                ],
-                [
-                    "name" => "No. WhatsApp",
-                    "type" => "string",
-                    "key" => "contact",
-                    "className" => "text-center text-xs",
-                ],
-                [
-                    "name" => "Role",
-                    "type" => "custom",
-                    "key" => "role",
-                ],
-                [
-                    "name" => "Project",
-                    "type" => "string",
-                    "className" => "text-center font-intersemibold text-xs",
-                    "key" => "project.project.title",
-                ],
-                [
-                    "name" => "Status",
-                    "type" => "status",
-                    "key" => "status",
-                    "className" => 'text-xs'
-                ],
-                [
-                    "name" => "Action",
-                    "type" => "action_status",
-                    "ability" => array(
-                        [
-                            'key' => 'show',
-                            'show_by' => 'm_status_tabs_id',
-                            'title' => 'Detail',
-                            'theme' => 'success',
-                            'show_value' => [1, 2]
-                        ],
-                        [
-                            'key' => 'delete',
-                            'show_by' => 'm_status_tabs_id',
-                            'title' => 'Hapus',
-                            'theme' => 'error',
-                            'show_value' => [1, 2]
-                        ]
-                    ),
-                ],
-            )
-        );
+        $isSuper = $this->tCompanyAdminTab
+            ->where('m_user_tabs_id', auth()->user()->id)
+            ->where('m_company_tabs_id', auth()->user()->m_company_tabs_id)
+            ->first();
+        $menu = array();
+        if ($isSuper) $menu = $this->mMenuTab->where('m_status_tabs_id', 1)->detail()->get();
+        else {
+            $userRoles = $this->tUserRolesTab->with(['user', 'role' => function ($a) {
+                $a->with('role_menu', function ($b) {
+                    $b->with('menu');
+                });
+            }])->whereHas('user', function ($b) {
+                $b->where('id', auth()->user()->id);
+            })->first();
+            foreach ($userRoles->role->role_menu as $key => $value) {
+                array_push($menu, $value->menu);
+            }
+        }
+        return $this->controller->resSuccess($menu);
     }
 
     /**

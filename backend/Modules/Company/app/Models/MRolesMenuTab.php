@@ -2,7 +2,6 @@
 
 namespace Modules\Company\Models;
 
-use Illuminate\Database\Eloquent\Casts\Json;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Master\Models\MMenuTab;
@@ -24,4 +23,10 @@ class MRolesMenuTab extends Model
     {
         return $this->hasOne(MMenuTab::class, 'id', 'm_menu_tabs_id');
     }
+
+    public function role()
+    {
+        return $this->hasOne(MRolesTab::class, 'id', 'm_roles_tabs_id');
+    }
+
 }

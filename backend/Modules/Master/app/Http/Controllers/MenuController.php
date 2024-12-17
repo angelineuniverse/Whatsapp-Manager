@@ -29,7 +29,7 @@ class MenuController extends Controller
         if ($this->tCompanyAdminTab->where('m_user_tabs_id', auth()->user()->id)->first()) {
             return $this->controller->resSuccess($this->mMenuTab->where('m_status_tabs_id', 1)->detail()->get());
         }
-        return $this->controller->resSuccess($this->mMenuTab->where('m_status_tabs_id', 1)->detail()->get());
+        return $this->controller->resSuccess($this->mMenuTab->detail()->get());
     }
 
     /**

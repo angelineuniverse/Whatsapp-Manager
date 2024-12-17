@@ -27,10 +27,15 @@ class MRolesTab extends Model
 
     public function getUsersCountAttribute()
     {
-        return count($this->user);
+        return count($this->pengguna);
     }
 
-    public function user()
+    public function role_menu()
+    {
+        return $this->hasMany(MRolesMenuTab::class, 'm_roles_tabs_id', 'id');
+    }
+
+    public function pengguna()
     {
         return $this->hasMany(TUserRolesTab::class, 'm_roles_tabs_id', 'id');
     }
