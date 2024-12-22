@@ -32,6 +32,7 @@ class UsersController extends Controller
         $mMenuTab,
         $tUserRolesTab,
         $tUserLogTab,
+        $mActionTab,
         $tUserProjectTab;
     public function __construct(
         Controller $controller,
@@ -39,11 +40,13 @@ class UsersController extends Controller
         MRolesMenuTab $mRolesMenuTab,
         MMenuTab $mMenuTab,
         TUserRolesTab $tUserRolesTab,
+        MActionTab $mActionTab,
         TUserProjectTab $tUserProjectTab,
         TUserLogTab $tUserLogTab,
         TCompanyAdminTab $tCompanyAdminTab
     ) {
         $this->controller = $controller;
+        $this->mActionTab = $mActionTab;
         $this->tUserRolesTab = $tUserRolesTab;
         $this->tUserProjectTab = $tUserProjectTab;
         $this->tUserLogTab = $tUserLogTab;
@@ -73,7 +76,7 @@ class UsersController extends Controller
                 $b->where('id', auth()->user()->id);
             })->first();
             foreach ($userRoles->role->role_menu as $key => $value) {
-                array_push($menu, $value->menu);
+                if ($value->menu) array_push($menu, $value->menu);
             }
         }
         return $this->controller->resSuccess($menu);

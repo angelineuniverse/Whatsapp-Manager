@@ -32,7 +32,10 @@ class ProjectController extends Controller
     {
         return $this->controller->successList(
             "LIST PROJECT",
-            $this->mProjectTab->where('m_company_tabs_id', auth()->user()->m_company_tabs_id)->query($request)->orderBy('id', 'desc')->paginate(10),
+            $this->mProjectTab
+                ->where('m_company_tabs_id', auth()->user()->m_company_tabs_id)
+                ->query($request)->orderBy('id', 'desc')
+                ->paginate(10),
             array(
                 [
                     'name' => 'Project',

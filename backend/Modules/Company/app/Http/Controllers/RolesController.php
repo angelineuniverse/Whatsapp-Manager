@@ -190,13 +190,22 @@ class RolesController extends Controller
         $detail = $this->mRolesTab->where('id', $id)->detail()->first();
         $masterMenu = $this->mMenuTab->whereNotIn('id', [1, 7])->get();
         $selectedMenu = $this->mRolesMenuTab->where('m_roles_tabs_id', $id)->get();
-        $action = $this->mActionTab->all();
 
         foreach ($selectedMenu as $key => $value) {
+            $action = $this->mActionTab->all();
             foreach ($masterMenu as $master) {
                 if ($master->id == $value->m_menu_tabs_id) {
                     $master->selected = true;
-                    $master['action'] = explode(',', $value->m_action_tabs_id);
+                    $actionTabs = explode(',', $value->m_action_tabs_id);
+                    foreach ($actionTabs as $j => $actab) {
+                        foreach ($action as $i => $act) {
+                            if ($act->id == $actab) {
+                                $act->selected = true;
+                            }
+                        }
+                    }
+
+                    $master['action'] = $action;
                 }
             }
         }
@@ -264,7 +273,7 @@ class RolesController extends Controller
                 ],
             ),
             "menu" => $masterMenu,
-            "action" => $action
+            
         ]);
     }
 
@@ -279,13 +288,14 @@ class RolesController extends Controller
         ]);
         try {
             DB::beginTransaction();
-            $this->mRolesTab->where('id', $id)->update($request->except(['menu']));
-            if (isset($request->menu)) {
+            $this->mRolesTab->where('id', $id)->update($request->except(['access']));
+            if (isset($request->access)) {
                 $this->mRolesMenuTab->where('m_roles_tabs_id', $id)->delete();
-                foreach ($request->menu as $key => $value) {
+                foreach ($request->access as $key => $value) {
                     $this->mRolesMenuTab->create([
                         'm_roles_tabs_id' => $id,
-                        'm_menu_tabs_id' => $value,
+                        'm_menu_tabs_id' => $value['menu'],
+                        'm_action_tabs_id' => count($value['action']) > 0 ? implode(',', $value['action']) : null
                     ]);
                 }
             }
