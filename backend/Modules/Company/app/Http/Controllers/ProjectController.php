@@ -8,21 +8,29 @@ use Illuminate\Support\Facades\DB;
 use Modules\Company\Models\MProjectTab;
 use Modules\Master\Models\MActionTab;
 use Modules\Master\Models\MModuleTab;
+use Modules\Users\Models\TCompanyAdminTab;
 use Modules\Users\Models\TUserLogTab;
+use Modules\Users\Models\TUserRolesTab;
 
 class ProjectController extends Controller
 {
     protected
         $controller,
         $tUserLogTab,
+        $tUserRolesTab,
+        $mActionTab,
         $mProjectTab;
     public function __construct(
         MProjectTab $mProjectTab,
         Controller $controller,
+        TUserRolesTab $tUserRolesTab,
+        MActionTab $mActionTab,
         TUserLogTab $tUserLogTab
     ) {
         $this->controller = $controller;
         $this->mProjectTab = $mProjectTab;
+        $this->mActionTab = $mActionTab;
+        $this->tUserRolesTab = $tUserRolesTab;
         $this->tUserLogTab = $tUserLogTab;
     }
     /**
@@ -202,7 +210,24 @@ class ProjectController extends Controller
      */
     public function show($id)
     {
-        return view('master::show');
+        $tUserRolesTab = $this->tUserRolesTab
+            ->where('m_user_tabs_id', auth()->user()->id)
+            ->with('role', function ($a) use ($id) {
+                $a->with('role_menu', function ($b) use ($id) {
+                    $b->where('m_menu_tabs_id', $id);
+                });
+            })
+            ->first();
+        if (!$tUserRolesTab) return $this->controller->resSuccess(null); // this Owner
+        $access = array();
+        foreach ($tUserRolesTab->role->role_menu as $i => $value) {
+            $actionTabs = explode(',', $value->m_action_tabs_id);
+            foreach ($actionTabs as $j => $item) {
+                $action = $this->mActionTab->where('id', $item)->first();
+                array_push($access, $action);
+            }
+        }
+        return $this->controller->resSuccess($access);
     }
 
     /**

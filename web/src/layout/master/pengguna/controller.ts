@@ -3,6 +3,9 @@ import client from "../../../service/service";
 export function create() {
     return client.get('/pengguna/create');
 }
+export function show() {
+    return client.get('/pengguna/'+ 6); // menu id
+}
 export function edit(id: string|undefined) {
     return client.get('/pengguna/'+id+'/edit');
 }

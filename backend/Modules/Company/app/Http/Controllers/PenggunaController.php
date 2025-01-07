@@ -28,6 +28,7 @@ class PenggunaController extends Controller
         $tCompanyAdminTab,
         $mProjectTab,
         $tUserRolesTab,
+        $mActionTab,
         $tUserLogTab,
         $tUserProjectTab;
     public function __construct(
@@ -37,10 +38,12 @@ class PenggunaController extends Controller
         MProjectTab $mProjectTab,
         TUserRolesTab $tUserRolesTab,
         TUserProjectTab $tUserProjectTab,
+        MActionTab $mActionTab,
         TUserLogTab $tUserLogTab,
         TCompanyAdminTab $tCompanyAdminTab
     ) {
         $this->controller = $controller;
+        $this->mActionTab = $mActionTab;
         $this->tUserRolesTab = $tUserRolesTab;
         $this->tUserProjectTab = $tUserProjectTab;
         $this->tUserLogTab = $tUserLogTab;
@@ -113,24 +116,29 @@ class PenggunaController extends Controller
                 ],
                 [
                     "name" => "Action",
-                    "type" => "action_status",
-                    "ability" => array(
-                        [
-                            'key' => 'show',
-                            'show_by' => 'm_status_tabs_id',
-                            'title' => 'Detail',
-                            'theme' => 'success',
-                            'show_value' => [1, 2]
-                        ],
-                        [
-                            'key' => 'delete',
-                            'show_by' => 'm_status_tabs_id',
-                            'title' => 'Hapus',
-                            'theme' => 'error',
-                            'show_value' => [1, 2]
-                        ]
-                    ),
+                    "type" => "custom",
+                    "key" => "action",
                 ],
+                // [
+                //     "name" => "Action",
+                //     "type" => "action_status",
+                //     "ability" => array(
+                //         [
+                //             'key' => 'show',
+                //             'show_by' => 'm_status_tabs_id',
+                //             'title' => 'Detail',
+                //             'theme' => 'success',
+                //             'show_value' => [1, 2]
+                //         ],
+                //         [
+                //             'key' => 'delete',
+                //             'show_by' => 'm_status_tabs_id',
+                //             'title' => 'Hapus',
+                //             'theme' => 'error',
+                //             'show_value' => [1, 2]
+                //         ]
+                //     ),
+                // ],
             )
         );
     }
@@ -271,7 +279,24 @@ class PenggunaController extends Controller
      */
     public function show($id)
     {
-        return view('company::show');
+        $tUserRolesTab = $this->tUserRolesTab
+            ->where('m_user_tabs_id', auth()->user()->id)
+            ->with('role', function ($a) use ($id) {
+                $a->with('role_menu', function ($b) use ($id) {
+                    $b->where('m_menu_tabs_id', $id);
+                });
+            })
+            ->first();
+        if (!$tUserRolesTab) return $this->controller->resSuccess(true); // this Owner
+        $access = array();
+        foreach ($tUserRolesTab->role->role_menu as $i => $value) {
+            $actionTabs = explode(',', $value->m_action_tabs_id);
+            foreach ($actionTabs as $j => $item) {
+                $action = $this->mActionTab->where('id', $item)->first();
+                array_push($access, $action);
+            }
+        }
+        return $this->controller->resSuccess($access);
     }
 
     /**

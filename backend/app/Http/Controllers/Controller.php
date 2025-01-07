@@ -55,7 +55,6 @@ class Controller
         $file_loc = public_path($dir) . '/' . $name;
         if (file_exists($file_loc)) unlink($file_loc);
     }
-
     public function download($dirname, $filename)
     {
         $files = public_path($dirname) . '/' . $filename;

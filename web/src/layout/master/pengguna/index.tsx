@@ -4,12 +4,14 @@ import {
   withRouterInterface,
 } from "../../../router/interface";
 import { Button, Dialog, Table } from "@angelineuniverse/design";
-import { tables, remove } from "./controller";
+import { tables, remove, show } from "./controller";
 import clsx from "clsx";
+import { find } from "lodash";
 
 class Pengguna extends Component<RouterInterface> {
   state: Readonly<{
     index: any;
+    access: boolean | Array<any> | undefined;
     detail: any;
     popDelete: boolean;
     loading: boolean;
@@ -17,6 +19,7 @@ class Pengguna extends Component<RouterInterface> {
   constructor(props: RouterInterface) {
     super(props);
     this.state = {
+      access: undefined,
       index: {
         column: [],
         data: undefined,
@@ -27,10 +30,12 @@ class Pengguna extends Component<RouterInterface> {
       detail: undefined,
     };
     this.callTable = this.callTable.bind(this);
+    this.callAccess = this.callAccess.bind(this);
   }
 
   componentDidMount(): void {
     this.callTable();
+    this.callAccess();
   }
   callTable(page?: object) {
     tables(page).then((res) => {
@@ -40,6 +45,13 @@ class Pengguna extends Component<RouterInterface> {
           data: res.data.data,
           property: res.data.property,
         },
+      });
+    });
+  }
+  callAccess() {
+    show().then((res) => {
+      this.setState({
+        access: res.data.data,
       });
     });
   }
@@ -67,7 +79,10 @@ class Pengguna extends Component<RouterInterface> {
       <div className="">
         <Suspense>
           <Table
-            useCreate
+            useCreate={
+              this.state.access === true ||
+              find(this.state.access as Array<any>, { action: "ADD" })
+            }
             useHeadline
             title="Atur semua Pengguna"
             createTitle="Tambah Pengguna"
@@ -105,6 +120,7 @@ class Pengguna extends Component<RouterInterface> {
                     {row.user_role?.role?.title ?? "-"}
                   </p>
                 )}
+                {key === "action" && <div></div>}
               </div>
             )}
             onEvent={(event, key) => {

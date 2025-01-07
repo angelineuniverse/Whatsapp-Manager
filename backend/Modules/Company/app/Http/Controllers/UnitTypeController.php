@@ -11,22 +11,29 @@ use Modules\Company\Models\MUnitTypeTabs;
 use Modules\Master\Models\MActionTab;
 use Modules\Master\Models\MModuleTab;
 use Modules\Users\Models\TUserLogTab;
+use Modules\Users\Models\TUserRolesTab;
 
 class UnitTypeController extends Controller
 {
     protected $controller,
         $tUserLogTab,
         $mUnitTypeTabs,
+        $mActionTab,
+        $tUserRolesTab,
         $mUnitStatusTabs,
         $mProjectTab;
     public function __construct(
         Controller $controller,
         MUnitTypeTabs $mUnitTypeTabs,
         MUnitStatusTabs $mUnitStatusTabs,
+        MActionTab $mActionTab,
+        TUserRolesTab $tUserRolesTab,
         MProjectTab $mProjectTab,
         TUserLogTab $tUserLogTab
     ) {
         $this->controller = $controller;
+        $this->mActionTab = $mActionTab;
+        $this->tUserRolesTab = $tUserRolesTab;
         $this->mUnitTypeTabs = $mUnitTypeTabs;
         $this->mUnitStatusTabs = $mUnitStatusTabs;
         $this->mProjectTab = $mProjectTab;
@@ -261,7 +268,24 @@ class UnitTypeController extends Controller
      */
     public function show($id, Request $request)
     {
-        return $this->controller->resSuccess($this->mUnitTypeTabs->where('m_project_tabs_id', $id)->search($request)->get());
+        $tUserRolesTab = $this->tUserRolesTab
+            ->where('m_user_tabs_id', auth()->user()->id)
+            ->with('role', function ($a) use ($id) {
+                $a->with('role_menu', function ($b) use ($id) {
+                    $b->where('m_menu_tabs_id', $id);
+                });
+            })
+            ->first();
+        if (!$tUserRolesTab) return $this->controller->resSuccess(null); // this Owner
+        $access = array();
+        foreach ($tUserRolesTab->role->role_menu as $i => $value) {
+            $actionTabs = explode(',', $value->m_action_tabs_id);
+            foreach ($actionTabs as $j => $item) {
+                $action = $this->mActionTab->where('id', $item)->first();
+                array_push($access, $action);
+            }
+        }
+        return $this->controller->resSuccess($access);
     }
 
     /**
