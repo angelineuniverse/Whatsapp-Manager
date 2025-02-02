@@ -4,12 +4,14 @@ import {
   withRouterInterface,
 } from "../../../router/interface";
 import { Button, Dialog, Table } from "@angelineuniverse/design";
-import { remove, tables, activated } from "./controller";
+import { remove, tables, activated, show } from "./controller";
 import clsx from "clsx";
+import { find } from "lodash";
 
 class Index extends Component<RouterInterface> {
   state: Readonly<{
     index: any;
+    access: boolean | Array<any> | undefined;
     detail: any;
     popDelete: boolean;
     loading: boolean;
@@ -17,6 +19,7 @@ class Index extends Component<RouterInterface> {
   constructor(props: RouterInterface) {
     super(props);
     this.state = {
+      access: undefined,
       index: {
         column: [],
         data: undefined,
@@ -27,10 +30,12 @@ class Index extends Component<RouterInterface> {
       loading: false,
     };
     this.callTable = this.callTable.bind(this);
+    this.callAccess = this.callAccess.bind(this);
   }
 
   componentDidMount(): void {
     this.callTable();
+    this.callAccess();
   }
   async callTable(page?: object) {
     await tables(page).then((res) => {
@@ -40,6 +45,13 @@ class Index extends Component<RouterInterface> {
           data: res.data.data,
           property: res.data.property,
         },
+      });
+    });
+  }
+  callAccess() {
+    show().then((res) => {
+      this.setState({
+        access: res.data.data,
       });
     });
   }
@@ -72,7 +84,10 @@ class Index extends Component<RouterInterface> {
       <div className="">
         <Suspense>
           <Table
-            useCreate
+            useCreate={
+              this.state.access === true ||
+              find(this.state.access as Array<any>, { action: "ADD" })
+            }
             useHeadline
             title="Kelola semua Project"
             createTitle="Tambah Project"

@@ -58,6 +58,7 @@ class Add extends Component<RouterInterface> {
       });
       menuForm.push({
         menu: item.id,
+        menu_parent_id: item.parent_id,
         action: listAction,
       });
     });

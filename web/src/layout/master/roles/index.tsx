@@ -4,19 +4,22 @@ import {
   withRouterInterface,
 } from "../../../router/interface";
 import { Button, Dialog, Table } from "@angelineuniverse/design";
-import { remove, tables } from "./controller";
+import { remove, tables, show } from "./controller";
 import clsx from "clsx";
+import { find } from "lodash";
 
 class Akses extends Component<RouterInterface> {
   state: Readonly<{
     index: any;
     detail: any;
+    access: boolean | Array<any> | undefined;
     popDelete: boolean;
     loading: boolean;
   }>;
   constructor(props: RouterInterface) {
     super(props);
     this.state = {
+      access: undefined,
       index: {
         column: [],
         data: undefined,
@@ -27,10 +30,12 @@ class Akses extends Component<RouterInterface> {
       loading: false,
     };
     this.callTable = this.callTable.bind(this);
+    this.callAccess = this.callAccess.bind(this);
   }
 
   componentDidMount(): void {
     this.callTable();
+    this.callAccess();
   }
   async callTable(params?: object) {
     await tables(params).then((res) => {
@@ -40,6 +45,13 @@ class Akses extends Component<RouterInterface> {
           data: res.data.data,
           property: res.data.property,
         },
+      });
+    });
+  }
+  async callAccess() {
+    await show("x").then((res) => {
+      this.setState({
+        access: res.data.data,
       });
     });
   }
@@ -68,7 +80,10 @@ class Akses extends Component<RouterInterface> {
       <div className="">
         <Suspense>
           <Table
-            useCreate
+            useCreate={
+              this.state.access === true ||
+              find(this.state.access as Array<any>, { action: "ADD" })
+            }
             useHeadline
             title="Atur semua Roles"
             createTitle="Tambah Roles"

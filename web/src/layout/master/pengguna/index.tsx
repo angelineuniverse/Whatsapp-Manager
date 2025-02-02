@@ -120,7 +120,6 @@ class Pengguna extends Component<RouterInterface> {
                     {row.user_role?.role?.title ?? "-"}
                   </p>
                 )}
-                {key === "action" && <div></div>}
               </div>
             )}
             onEvent={(event, key) => {

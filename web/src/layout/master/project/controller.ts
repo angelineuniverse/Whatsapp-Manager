@@ -6,6 +6,9 @@ export function create() {
 export function edit(id: string|undefined) {
     return client.get('/project/'+id+'/edit');
 }
+export function show() {
+    return client.get('/project/x'); // menu id
+}
 export function tables(params?: object) {
     return client.get('/project', {
         params: params

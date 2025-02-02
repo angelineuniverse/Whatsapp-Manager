@@ -18,10 +18,11 @@ class MRolesMenuTab extends Model
         'm_roles_tabs_id',
         'm_menu_tabs_id',
         'm_action_tabs_id',
+        'menu_parent_id'
     ];
     public function menu()
     {
-        return $this->hasOne(MMenuTab::class, 'id', 'm_menu_tabs_id')->whereNull('parent_id');
+        return $this->hasOne(MMenuTab::class, 'id', 'm_menu_tabs_id');
     }
 
     public function role()

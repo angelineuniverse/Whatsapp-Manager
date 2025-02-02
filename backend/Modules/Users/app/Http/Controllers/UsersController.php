@@ -7,10 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use Laravel\Sanctum\PersonalAccessToken;
-use Modules\Company\Models\MProjectTab;
 use Modules\Company\Models\MRolesMenuTab;
-use Modules\Company\Models\MRolesTab;
 use Modules\Master\Models\MActionTab;
 use Modules\Master\Models\MCodeTab;
 use Modules\Master\Models\MMenuTab;
@@ -75,6 +72,7 @@ class UsersController extends Controller
             }])->whereHas('user', function ($b) {
                 $b->where('id', auth()->user()->id);
             })->first();
+            // return $this->controller->resSuccess($userRoles);
             foreach ($userRoles->role->role_menu as $key => $value) {
                 if ($value->menu) array_push($menu, $value->menu);
             }

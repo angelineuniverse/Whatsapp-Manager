@@ -11,6 +11,7 @@ use Modules\Company\Models\MProjectTab;
 use Modules\Company\Models\MRolesTab;
 use Modules\Master\Models\MActionTab;
 use Modules\Master\Models\MCodeTab;
+use Modules\Master\Models\MMenuTab;
 use Modules\Master\Models\MModuleTab;
 use Modules\Users\Emails\MailRegister;
 use Modules\Users\Models\MUserTab;
@@ -29,6 +30,7 @@ class PenggunaController extends Controller
         $mProjectTab,
         $tUserRolesTab,
         $mActionTab,
+        $mMenuTab,
         $tUserLogTab,
         $tUserProjectTab;
     public function __construct(
@@ -39,10 +41,12 @@ class PenggunaController extends Controller
         TUserRolesTab $tUserRolesTab,
         TUserProjectTab $tUserProjectTab,
         MActionTab $mActionTab,
+        MMenuTab $mMenuTab,
         TUserLogTab $tUserLogTab,
         TCompanyAdminTab $tCompanyAdminTab
     ) {
         $this->controller = $controller;
+        $this->mMenuTab = $mMenuTab;
         $this->mActionTab = $mActionTab;
         $this->tUserRolesTab = $tUserRolesTab;
         $this->tUserProjectTab = $tUserProjectTab;
@@ -116,29 +120,9 @@ class PenggunaController extends Controller
                 ],
                 [
                     "name" => "Action",
-                    "type" => "custom",
-                    "key" => "action",
+                    "type" => "action_status",
+                    "ability" => $this->getAccessAction()
                 ],
-                // [
-                //     "name" => "Action",
-                //     "type" => "action_status",
-                //     "ability" => array(
-                //         [
-                //             'key' => 'show',
-                //             'show_by' => 'm_status_tabs_id',
-                //             'title' => 'Detail',
-                //             'theme' => 'success',
-                //             'show_value' => [1, 2]
-                //         ],
-                //         [
-                //             'key' => 'delete',
-                //             'show_by' => 'm_status_tabs_id',
-                //             'title' => 'Hapus',
-                //             'theme' => 'error',
-                //             'show_value' => [1, 2]
-                //         ]
-                //     ),
-                // ],
             )
         );
     }
@@ -364,7 +348,7 @@ class PenggunaController extends Controller
                     "type" => "select",
                     "isRequired" => true,
                     'useClear' => true,
-                    "m_roles_tabs_id" => $user->user_role->m_roles_tabs_id,
+                    "m_roles_tabs_id" => $user->user_role->m_roles_tabs_id ?? null,
                     "placeholder" => "Pilih Role",
                     "description" => 'Hanya Role yang statusnya Active yang dapat dipilih',
                     'list' => [
@@ -400,6 +384,12 @@ class PenggunaController extends Controller
                 $this->controller->unlink_filex(public_path('avatar'), $user->avatar);
                 $file->move(public_path('avatar'), $filename);
                 $user->update(['avatar' => $filename]);
+            }
+            if (isset($request->m_roles_tabs_id)) {
+                $this->tUserRolesTab->create([
+                    'm_roles_tabs_id' => $request->m_roles_tabs_id,
+                    'm_user_tabs_id' => $id,
+                ]);
             }
             $this->tUserLogTab->create([
                 'm_user_tabs_id' => auth()->user()->id,
@@ -502,5 +492,66 @@ class PenggunaController extends Controller
             DB::rollBack();
             abort(501, $th->getMessage());
         }
+    }
+
+    public function getAccessAction()
+    {
+        $id = $this->mMenuTab->where('title', 'like', '%Pengguna%')->pluck('id');
+        $tUserRolesTab = $this->tUserRolesTab
+            ->where('m_user_tabs_id', auth()->user()->id)
+            ->with('role', function ($a) use ($id) {
+                $a->with('role_menu', function ($b) use ($id) {
+                    $b->where('m_menu_tabs_id', $id);
+                });
+            })
+            ->first();
+        if (!$tUserRolesTab) // this owner
+            return array(
+                [
+                    'key' => 'show',
+                    'show_by' => 'm_status_tabs_id',
+                    'title' => 'Detail',
+                    'theme' => 'success',
+                    'show_value' => [1, 2]
+                ],
+                [
+                    'key' => 'delete',
+                    'show_by' => 'm_status_tabs_id',
+                    'title' => 'Hapus',
+                    'theme' => 'error',
+                    'show_value' => [1, 2]
+                ]
+            );
+
+        $access = array();
+        foreach ($tUserRolesTab->role->role_menu as $i => $value) {
+            $actionTabs = explode(',', $value->m_action_tabs_id);
+            foreach ($actionTabs as $j => $item) {
+                $action = $this->mActionTab->where('id', $item)->first();
+                switch ($action->action) {
+                    case 'SHOW':
+                        array_push($access, [
+                            'key' => 'show',
+                            'show_by' => 'm_status_tabs_id',
+                            'title' => 'Detail',
+                            'theme' => 'success',
+                            'show_value' => [1, 2]
+                        ],);
+                        break;
+                    case 'DELETE':
+                        array_push($access, [
+                            'key' => 'delete',
+                            'show_by' => 'm_status_tabs_id',
+                            'title' => 'Hapus',
+                            'theme' => 'error',
+                            'show_value' => [1, 2]
+                        ]);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        return $access;
     }
 }

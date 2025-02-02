@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Company\Models\MProjectTab;
 use Modules\Master\Models\MActionTab;
+use Modules\Master\Models\MMenuTab;
 use Modules\Master\Models\MModuleTab;
 use Modules\Users\Models\TCompanyAdminTab;
 use Modules\Users\Models\TUserLogTab;
@@ -19,15 +20,18 @@ class ProjectController extends Controller
         $tUserLogTab,
         $tUserRolesTab,
         $mActionTab,
+        $mMenuTab,
         $mProjectTab;
     public function __construct(
         MProjectTab $mProjectTab,
         Controller $controller,
         TUserRolesTab $tUserRolesTab,
         MActionTab $mActionTab,
+        MMenuTab $mMenuTab,
         TUserLogTab $tUserLogTab
     ) {
         $this->controller = $controller;
+        $this->mMenuTab = $mMenuTab;
         $this->mProjectTab = $mProjectTab;
         $this->mActionTab = $mActionTab;
         $this->tUserRolesTab = $tUserRolesTab;
@@ -84,36 +88,7 @@ class ProjectController extends Controller
                 [
                     "name" => "Action",
                     "type" => "action_status",
-                    "ability" => array(
-                        [
-                            'key' => 'activated',
-                            'show_by' => 'm_status_tabs_id',
-                            'title' => 'Aktivasi',
-                            'theme' => 'primary',
-                            'show_value' => [2]
-                        ],
-                        [
-                            'key' => 'not_activated',
-                            'show_by' => 'm_status_tabs_id',
-                            'title' => 'Deaktivasi',
-                            'theme' => 'warning',
-                            'show_value' => [1]
-                        ],
-                        [
-                            'key' => 'show',
-                            'show_by' => 'm_status_tabs_id',
-                            'title' => 'Ubah',
-                            'theme' => 'success',
-                            'show_value' => [1, 2]
-                        ],
-                        [
-                            'key' => 'delete',
-                            'show_by' => 'm_status_tabs_id',
-                            'title' => 'Hapus',
-                            'theme' => 'error',
-                            'show_value' => [1, 2]
-                        ]
-                    ),
+                    "ability" => $this->getAccessAction(),
                 ],
             )
         );
@@ -210,6 +185,7 @@ class ProjectController extends Controller
      */
     public function show($id)
     {
+        $id = $this->mMenuTab->where('title', 'like', '%Project%')->pluck('id');
         $tUserRolesTab = $this->tUserRolesTab
             ->where('m_user_tabs_id', auth()->user()->id)
             ->with('role', function ($a) use ($id) {
@@ -218,7 +194,7 @@ class ProjectController extends Controller
                 });
             })
             ->first();
-        if (!$tUserRolesTab) return $this->controller->resSuccess(null); // this Owner
+        if (!$tUserRolesTab) return $this->controller->resSuccess(true); // this Owner
         $access = array();
         foreach ($tUserRolesTab->role->role_menu as $i => $value) {
             $actionTabs = explode(',', $value->m_action_tabs_id);
@@ -370,5 +346,98 @@ class ProjectController extends Controller
             DB::rollBack();
             abort(501, $th->getMessage());
         }
+    }
+
+    public function getAccessAction()
+    {
+        $id = $this->mMenuTab->where('title', 'like', '%Project%')->pluck('id');
+        $tUserRolesTab = $this->tUserRolesTab
+            ->where('m_user_tabs_id', auth()->user()->id)
+            ->with('role', function ($a) use ($id) {
+                $a->with('role_menu', function ($b) use ($id) {
+                    $b->where('m_menu_tabs_id', $id);
+                });
+            })
+            ->first();
+        if (!$tUserRolesTab) // this owner
+            return array(
+                [
+                    'key' => 'activated',
+                    'show_by' => 'm_status_tabs_id',
+                    'title' => 'Aktivasi',
+                    'theme' => 'primary',
+                    'show_value' => [2]
+                ],
+                [
+                    'key' => 'not_activated',
+                    'show_by' => 'm_status_tabs_id',
+                    'title' => 'Deaktivasi',
+                    'theme' => 'warning',
+                    'show_value' => [1]
+                ],
+                [
+                    'key' => 'show',
+                    'show_by' => 'm_status_tabs_id',
+                    'title' => 'Ubah',
+                    'theme' => 'success',
+                    'show_value' => [1, 2]
+                ],
+                [
+                    'key' => 'delete',
+                    'show_by' => 'm_status_tabs_id',
+                    'title' => 'Hapus',
+                    'theme' => 'error',
+                    'show_value' => [1, 2]
+                ]
+            );
+        $access = array();
+        foreach ($tUserRolesTab->role->role_menu as $i => $value) {
+            $actionTabs = explode(',', $value->m_action_tabs_id);
+            foreach ($actionTabs as $j => $item) {
+                $action = $this->mActionTab->where('id', $item)->first();
+                switch ($action->action) {
+                    case 'UPDATE':
+                        array_push(
+                            $access,
+                            [
+                                'key' => 'activated',
+                                'show_by' => 'm_status_tabs_id',
+                                'title' => 'Aktivasi',
+                                'theme' => 'primary',
+                                'show_value' => [2]
+                            ],
+                            [
+                                'key' => 'not_activated',
+                                'show_by' => 'm_status_tabs_id',
+                                'title' => 'Deaktivasi',
+                                'theme' => 'warning',
+                                'show_value' => [1]
+                            ]
+                        );
+                        break;
+                    case 'SHOW':
+                        array_push($access, [
+                            'key' => 'show',
+                            'show_by' => 'm_status_tabs_id',
+                            'title' => 'Ubah',
+                            'theme' => 'success',
+                            'show_value' => [1, 2]
+                        ]);
+                        break;
+                    case 'DELETE':
+                        array_push($access, [
+                            'key' => 'delete',
+                            'show_by' => 'm_status_tabs_id',
+                            'title' => 'Hapus',
+                            'theme' => 'error',
+                            'show_value' => [1, 2]
+                        ]);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        return $access;
     }
 }

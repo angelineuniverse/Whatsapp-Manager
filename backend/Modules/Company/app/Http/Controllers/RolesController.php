@@ -12,6 +12,7 @@ use Modules\Master\Models\MActionTab;
 use Modules\Master\Models\MMenuTab;
 use Modules\Master\Models\MModuleTab;
 use Modules\Users\Models\TUserLogTab;
+use Modules\Users\Models\TUserRolesTab;
 
 class RolesController extends Controller
 {
@@ -21,6 +22,7 @@ class RolesController extends Controller
         $mMenuTab,
         $mRolesMenuTab,
         $mActionTab,
+        $tUserRolesTab,
         $mProjectTab;
     public function __construct(
         Controller $controller,
@@ -29,9 +31,11 @@ class RolesController extends Controller
         MMenuTab $mMenuTab,
         MRolesMenuTab $mRolesMenuTab,
         TUserLogTab $tUserLogTab,
-        MActionTab $mActionTab
+        MActionTab $mActionTab,
+        TUserRolesTab $tUserRolesTab
     ) {
         $this->controller = $controller;
+        $this->tUserRolesTab = $tUserRolesTab;
         $this->mRolesTab = $mRolesTab;
         $this->mProjectTab = $mProjectTab;
         $this->mRolesMenuTab = $mRolesMenuTab;
@@ -53,7 +57,7 @@ class RolesController extends Controller
                 ["name" => "Parent Roles", "key" => "parent", 'type' => 'custom', 'className' => 'text-center',],
                 ["name" => "Total Pengguna", "key" => "users_count", 'type' => 'string', 'className' => 'text-center', 'classNameRow' => 'text-center'],
                 ["name" => "Color", "key" => "color", 'type' => 'custom', 'classNameRow' => 'text-center'],
-                ["type" => 'action', "ability" => ["EDIT", "DELETE"]]
+                ["type" => 'action', "ability" => $this->getAccessAction()]
             ]
         );
     }
@@ -149,11 +153,14 @@ class RolesController extends Controller
             $role = $this->mRolesTab->create($request->all());
             if (isset($request->access)) {
                 foreach ($request->access as $key => $value) {
-                    $this->mRolesMenuTab->create([
-                        'm_roles_tabs_id' => $role->id,
-                        'm_menu_tabs_id' => $value['menu'],
-                        'm_action_tabs_id' => count($value['action']) > 0 ? implode(',', $value['action']) : null
-                    ]);
+                    if (count($value['action']) > 0) {
+                        $this->mRolesMenuTab->create([
+                            'm_roles_tabs_id' => $role->id,
+                            'm_menu_tabs_id' => $value['menu'],
+                            'menu_parent_id' => $value['menu_parent_id'],
+                            'm_action_tabs_id' => count($value['action']) > 0 ? implode(',', $value['action']) : null
+                        ]);
+                    }
                 }
             }
             $this->tUserLogTab->create([
@@ -177,9 +184,27 @@ class RolesController extends Controller
     /**
      * Show the specified resource.
      */
-    public function show($id, Request $request)
+    public function show($id)
     {
-        return $this->controller->resSuccess($this->mRolesTab->where('m_project_tabs_id', $id)->search($request)->get());
+        $id = $this->mMenuTab->where('title', 'like', '%Roles%')->pluck('id');
+        $tUserRolesTab = $this->tUserRolesTab
+            ->where('m_user_tabs_id', auth()->user()->id)
+            ->with('role', function ($a) use ($id) {
+                $a->with('role_menu', function ($b) use ($id) {
+                    $b->where('m_menu_tabs_id', $id);
+                });
+            })
+            ->first();
+        if (!$tUserRolesTab) return $this->controller->resSuccess(true); // this Owner
+        $access = array();
+        foreach ($tUserRolesTab->role->role_menu as $i => $value) {
+            $actionTabs = explode(',', $value->m_action_tabs_id);
+            foreach ($actionTabs as $j => $item) {
+                $action = $this->mActionTab->where('id', $item)->first();
+                array_push($access, $action);
+            }
+        }
+        return $this->controller->resSuccess($access);
     }
 
     /**
@@ -191,9 +216,9 @@ class RolesController extends Controller
         $masterMenu = $this->mMenuTab->whereNotIn('id', [1, 7])->get();
         $selectedMenu = $this->mRolesMenuTab->where('m_roles_tabs_id', $id)->get();
 
-        foreach ($selectedMenu as $key => $value) {
+        foreach ($masterMenu as $master) {
             $action = $this->mActionTab->all();
-            foreach ($masterMenu as $master) {
+            foreach ($selectedMenu as $key => $value) {
                 if ($master->id == $value->m_menu_tabs_id) {
                     $master->selected = true;
                     $actionTabs = explode(',', $value->m_action_tabs_id);
@@ -204,9 +229,8 @@ class RolesController extends Controller
                             }
                         }
                     }
-
-                    $master['action'] = $action;
                 }
+                $master['action'] = $action;
             }
         }
         return $this->controller->resSuccess([
@@ -292,11 +316,14 @@ class RolesController extends Controller
             if (isset($request->access)) {
                 $this->mRolesMenuTab->where('m_roles_tabs_id', $id)->delete();
                 foreach ($request->access as $key => $value) {
-                    $this->mRolesMenuTab->create([
-                        'm_roles_tabs_id' => $id,
-                        'm_menu_tabs_id' => $value['menu'],
-                        'm_action_tabs_id' => count($value['action']) > 0 ? implode(',', $value['action']) : null
-                    ]);
+                    if (count($value['action']) > 0) {
+                        $this->mRolesMenuTab->create([
+                            'm_roles_tabs_id' => $id,
+                            'm_menu_tabs_id' => $value['menu'],
+                            'menu_parent_id' => $value['menu_parent_id'],
+                            'm_action_tabs_id' => count($value['action']) > 0 ? implode(',', $value['action']) : null
+                        ]);
+                    }
                 }
             }
             $this->tUserLogTab->create([
@@ -341,5 +368,37 @@ class RolesController extends Controller
             DB::rollBack();
             abort(501, $th->getMessage());
         }
+    }
+
+    public function getAccessAction()
+    {
+        $id = $this->mMenuTab->where('title', 'like', '%Roles%')->pluck('id');
+        $tUserRolesTab = $this->tUserRolesTab
+            ->where('m_user_tabs_id', auth()->user()->id)
+            ->with('role', function ($a) use ($id) {
+                $a->with('role_menu', function ($b) use ($id) {
+                    $b->where('m_menu_tabs_id', $id);
+                });
+            })
+            ->first();
+        if (!$tUserRolesTab) return array("EDIT", "DELETE");  // this Owner
+        $access = array();
+        foreach ($tUserRolesTab->role->role_menu as $i => $value) {
+            $actionTabs = explode(',', $value->m_action_tabs_id);
+            foreach ($actionTabs as $j => $item) {
+                $action = $this->mActionTab->where('id', $item)->first();
+                switch ($action->action) {
+                    case 'SHOW':
+                        array_push($access, "EDIT");
+                        break;
+                    case 'DELETE':
+                        array_push($access, "DELETE");
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        return $access;
     }
 }
